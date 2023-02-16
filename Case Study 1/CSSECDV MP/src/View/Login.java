@@ -96,14 +96,13 @@ public class Login extends javax.swing.JPanel {
         }else{
             sql = new SQLite();
             if (userFound(sql.getUsers(), usernameFld.getText())){
-                if(sql.getUser(usernameFld.getText()).getPassword().equals(passwordFld.getText())){
-                    //Valid uname and pword.
+                if(sql.getUser(usernameFld.getText()).getPassword().equals(passwordFld.getText())){ //Valid uname and pword.
                     //Log Login to DB.
                     usernameFld.setText("");
                     passwordFld.setText("");
+                    sql = null;
                     frame.mainNav();
-                }else{
-                    //Invalid uname and pword.
+                }else{ //Invalid uname and pword.
                     invalidLogin();
                 }
             }else{
