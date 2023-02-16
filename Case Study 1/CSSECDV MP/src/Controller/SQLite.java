@@ -279,6 +279,34 @@ public class SQLite {
         return users;
     }
     
+    /**
+     * Get a specific user by id
+     * @param id ID of user in DB.
+     * @return User object that matches id, null if nothing was found.
+     */
+    public User getUser(int id){
+        ArrayList<User> users = getUsers();
+        for(int i = 0; i < users.size(); i++){
+            if (users.get(i).getId() == id)
+                return users.get(i);
+        }
+        return null;
+    }
+    
+    /**
+     * Get a specific user by username
+     * @param uname Username of user in DB.
+     * @return User object that matches uname, null if nothing was found.
+     */
+    public User getUser(String uname){
+        ArrayList<User> users = getUsers();
+        for(int i = 0; i < users.size(); i++){
+            if (users.get(i).getUsername().equalsIgnoreCase(uname))
+                return users.get(i);
+        }
+        return null;
+    }
+    
     public void addUser(String username, String password, int role) {
         String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + password + "','" + role + "')";
         

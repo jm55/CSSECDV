@@ -1,9 +1,16 @@
 
 package View;
 
+import java.util.ArrayList;
+
+import Controller.SQLite;
+import Model.User;
+import javax.swing.JOptionPane;
+
 public class Login extends javax.swing.JPanel {
 
     public Frame frame;
+    private SQLite sql;
     
     public Login() {
         initComponents();
@@ -83,13 +90,60 @@ public class Login extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
-        frame.mainNav();
+        //Check if both fields are not empty
+        if (fieldsIsEmpty()){
+            invalidLogin();
+        }else{
+            sql = new SQLite();
+            if (userFound(sql.getUsers(), usernameFld.getText())){
+                if(sql.getUser(usernameFld.getText()).getPassword().equals(passwordFld.getText())){
+                    //Valid uname and pword.
+                    //Log Login to DB.
+                    usernameFld.setText("");
+                    passwordFld.setText("");
+                    frame.mainNav();
+                }else{
+                    //Invalid uname and pword.
+                    invalidLogin();
+                }
+            }else{
+                invalidLogin();
+            }
+            sql = null;
+        }
     }//GEN-LAST:event_loginBtnActionPerformed
 
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
         frame.registerNav();
     }//GEN-LAST:event_registerBtnActionPerformed
-
+    
+    private boolean fieldsIsEmpty(){
+        if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank())
+                return true;
+        return false;
+    }
+    
+    /**
+     * Ambiguous message if username/password don't match on DB.
+     */
+    private void invalidLogin(){
+        JOptionPane.showMessageDialog(frame, "Invalid username or password, please try again.", "Invalid Login", JOptionPane.WARNING_MESSAGE);
+        passwordFld.setText("");
+    }
+    
+    /**
+     * Check if given user exists.
+     * @param users ArrayList of User objects to check from.
+     * @param uname Username to be checked.
+     * @return True if found, False if otherwise.
+     */
+    private boolean userFound(ArrayList<User> users, String uname){
+        for(int i = 0; i < users.size(); i++){
+            if (users.get(i).getUsername().equalsIgnoreCase(uname))
+                return true;
+        }    
+        return false;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
