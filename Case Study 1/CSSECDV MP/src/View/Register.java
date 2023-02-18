@@ -97,14 +97,28 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
+        /**
+         * 0. Initial role code is 1.
+         * 1. Verify inputs for completion and validity.
+         * 2. Set role code to 2 condition/action 1 is met.
+         */
         frame.registerAction(usernameFld.getText(), passwordFld.getText(), confpassFld.getText());
         frame.loginNav();
     }//GEN-LAST:event_registerBtnActionPerformed
 
     private void backBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBtnActionPerformed
+        clearFields();
         frame.loginNav();
     }//GEN-LAST:event_backBtnActionPerformed
 
+    /**
+     * Clear input fields of typed data.
+     */
+    private void clearFields(){
+        usernameFld.setText("");
+        passwordFld.setText("");
+        confpassFld.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backBtn;

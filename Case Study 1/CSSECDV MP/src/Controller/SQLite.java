@@ -4,12 +4,26 @@ import Model.History;
 import Model.Logs;
 import Model.Product;
 import Model.User;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SQLite {
     
@@ -165,6 +179,12 @@ public class SQLite {
             stmt.execute(sql);
         } catch (Exception ex) {
             System.out.print(ex);
+        } finally{
+            ArrayList<Logs> logs = getLogs();
+            for (int i = 0; i < logs.size(); i++){
+                Logs log = logs.get(i);
+                System.out.println(log.getTimestamp() + ": [" + log.getEvent() + "] " + log.getDesc() + " by " + log.getUsername());
+            }
         }
     }
     
@@ -180,7 +200,7 @@ public class SQLite {
     }
     
     public void addUser(String username, String password) {
-        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + password + "')";
+        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + getHash(password) + "')";
         
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
@@ -192,6 +212,18 @@ public class SQLite {
 //      pstmt.setString(1, username);
 //      pstmt.setString(2, password);
 //      pstmt.executeUpdate();
+        } catch (Exception ex) {
+            System.out.print(ex);
+        }
+    }
+    
+    public void addUser(String username, String password, int role) {
+        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + getHash(password) + "','" + role + "')";
+        
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement()){
+            stmt.execute(sql);
+            
         } catch (Exception ex) {
             System.out.print(ex);
         }
@@ -280,43 +312,92 @@ public class SQLite {
     }
     
     /**
-     * Get a specific user by id
-     * @param id ID of user in DB.
-     * @return User object that matches id, null if nothing was found.
+     * Get a specific user by username
+     * @param uname Username of user in DB.
+     * @return User object that matches username, null if nothing was found.
      */
-    public User getUser(int id){
+    public User getUser(final String username){
         ArrayList<User> users = getUsers();
         for(int i = 0; i < users.size(); i++){
-            if (users.get(i).getId() == id)
+            if (users.get(i).getUsername().equalsIgnoreCase(username))
                 return users.get(i);
         }
         return null;
     }
     
     /**
-     * Get a specific user by username
-     * @param uname Username of user in DB.
-     * @return User object that matches uname, null if nothing was found.
+     * Checks if user exists such that it's found on the database.
+     * @param uname
+     * @return True if user exists, False if not.
      */
-    public User getUser(String uname){
-        ArrayList<User> users = getUsers();
-        for(int i = 0; i < users.size(); i++){
-            if (users.get(i).getUsername().equalsIgnoreCase(uname))
-                return users.get(i);
+    public boolean isUserExists(final String username){
+        if (getUser(username) != null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    /**
+     * 
+     * @param username
+     * @param password
+     * @return 
+     */
+    public boolean authenticateUser(final String username, final String password){
+        if (getUser(username).getPassword().equals(getHash(password))){
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Gets AES configuration for hashing function.
+     * @return SecretKeySpec object that contains configured AES.
+     */
+    private final SecretKeySpec AES(){
+        final String privateKey = "C5SecDV_s11";
+        MessageDigest sha;
+        byte[] key;
+        try {
+            key = privateKey.getBytes("UTF-8");
+            sha = MessageDigest.getInstance("SHA-256");
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 24);
+            return new SecretKeySpec(key, "AES");
+        } catch (UnsupportedEncodingException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
         }
         return null;
     }
     
-    public void addUser(String username, String password, int role) {
-        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + password + "','" + role + "')";
-        
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
-            
-        } catch (Exception ex) {
-            System.out.print(ex);
+    /**
+     * Gets the hash of a given plain-text password.
+     * @param plaintext
+     * @return 
+     */
+    private String getHash(final String plaintext){
+        try {
+            Cipher cipher;
+            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, AES());
+            return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (NoSuchPaddingException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        }catch (InvalidKeyException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        }catch (UnsupportedEncodingException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (IllegalBlockSizeException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (BadPaddingException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
         }
+        return null;
     }
     
     public void removeUser(String username) {
