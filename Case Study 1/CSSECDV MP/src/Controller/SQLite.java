@@ -180,11 +180,7 @@ public class SQLite {
         } catch (Exception ex) {
             System.out.print(ex);
         } finally{
-            ArrayList<Logs> logs = getLogs();
-            for (int i = 0; i < logs.size(); i++){
-                Logs log = logs.get(i);
-                System.out.println(log.getTimestamp() + ": [" + log.getEvent() + "] " + log.getDesc() + " by " + log.getUsername());
-            }
+            //printLogs();
         }
     }
     
@@ -325,81 +321,6 @@ public class SQLite {
         return null;
     }
     
-    /**
-     * Checks if user exists such that it's found on the database.
-     * @param uname
-     * @return True if user exists, False if not.
-     */
-    public boolean isUserExists(final String username){
-        if (getUser(username) != null){
-            return true;
-        }else{
-            return false;
-        }
-    }
-    
-    /**
-     * 
-     * @param username
-     * @param password
-     * @return 
-     */
-    public boolean authenticateUser(final String username, final String password){
-        if (getUser(username).getPassword().equals(getHash(password))){
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Gets AES configuration for hashing function.
-     * @return SecretKeySpec object that contains configured AES.
-     */
-    private final SecretKeySpec AES(){
-        final String privateKey = "C5SecDV_s11";
-        MessageDigest sha;
-        byte[] key;
-        try {
-            key = privateKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-256");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 24);
-            return new SecretKeySpec(key, "AES");
-        } catch (UnsupportedEncodingException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
-    /**
-     * Gets the hash of a given plain-text password.
-     * @param plaintext
-     * @return 
-     */
-    private String getHash(final String plaintext){
-        try {
-            Cipher cipher;
-            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES());
-            return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
-        } catch (NoSuchAlgorithmException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        } catch (NoSuchPaddingException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }catch (InvalidKeyException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }catch (UnsupportedEncodingException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        } catch (IllegalBlockSizeException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        } catch (BadPaddingException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
     public void removeUser(String username) {
         String sql = "DELETE FROM users WHERE username='" + username + "';";
 
@@ -425,5 +346,132 @@ public class SQLite {
             System.out.print(ex);
         }
         return product;
+    }
+    
+    /**
+     * Prints contents of logs.
+     * For testing purposes only.
+     */
+    private void printLogs(){
+        ArrayList<Logs> logs = getLogs();
+        for (int i = 0; i < logs.size(); i++){
+            Logs log = logs.get(i);
+            System.out.println(log.getTimestamp() + ": [" + log.getEvent() + "] " + log.getDesc() + " by " + log.getUsername());
+        }
+    }
+    
+    /**
+     * Sets the locked value of a given user to the given locked value.
+     * @param username Username being locked
+     * @param locked Lock value.
+     */
+    private boolean updateUserLocked(String username, int locked){
+        System.out.println("username: " + username);
+        String sql = "UPDATE users SET locked=" + locked + " WHERE username='" + username + "';";
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement()){
+            return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
+        } catch (Exception ex) {
+            System.out.print(ex);
+            return true;
+        }
+    }
+    
+    /**
+     * Checks if user exists such that it's found on the database.
+     * @param uname
+     * @return True if user exists, False if not.
+     */
+    public boolean isUserExists(final String username){
+        if (getUser(username) != null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    /**
+     * Authenticates a user given their username and password.
+     * @param username Username of user
+     * @param password Password of user
+     * @return True if user credentials are authenticated such that it matches the DB's contents, false if otherwise.
+     */
+    public boolean authenticateUser(final String username, final String password){
+        if (getUser(username).getPassword().equals(getHash(password))){
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Checks if a given user (via the username) is locked.
+     * @param username Username of the user. Assumes user as valid.
+     * @return True of locked, false if otherwise.
+     */
+    public boolean isUserLocked(String username){
+        if (getUser(username).getLocked() != 0)
+            return true;
+        return false;
+    }
+    
+    /**
+     * Locks a given user (via the username)
+     * @param username Username of the user.
+     * @return True if successfully locked, false if otherwise.
+     */
+    public boolean lockUser(String username){
+        User u = getUser(username);
+        if (u != null && u.getLocked() == 0)
+            return updateUserLocked(username, 1);
+        return false;
+    }
+    
+     /**
+     * Unlocks a given user (via the username)
+     * @param username Username of the user.
+     * @return True if successfully locked, false if otherwise.
+     */
+    public boolean unlockUser(String username){
+        User u = getUser(username);
+        if (u != null && u.getLocked() != 0)
+            return updateUserLocked(username, 0);
+        return false;
+    }
+    
+    /**
+     * Gets AES configuration for hashing function.
+     * @return SecretKeySpec object that contains configured AES.
+     */
+    private final SecretKeySpec AES(){
+        final String privateKey = "C5SecDV_s11";
+        MessageDigest sha;
+        byte[] key;
+        try {
+            key = privateKey.getBytes("UTF-8");
+            sha = MessageDigest.getInstance("SHA-256");
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 24);
+            return new SecretKeySpec(key, "AES");
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
+            //System.out.println("AES Error: " + ex.getLocalizedMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * Gets the hash of a given plain-text password.
+     * @param plaintext
+     * @return 
+     */
+    private String getHash(final String plaintext){
+        try {
+            Cipher cipher;
+            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, AES());
+            return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException ex) {
+            //System.out.println("AES Error: " + ex.getLocalizedMessage());
+        }
+        return null;
     }
 }

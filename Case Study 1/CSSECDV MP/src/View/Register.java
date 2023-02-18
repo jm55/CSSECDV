@@ -1,9 +1,18 @@
 
 package View;
 
+import Controller.SQLite;
+import Model.User;
+import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
+
 public class Register extends javax.swing.JPanel {
 
     public Frame frame;
+
+    private final String usernameRegex = "[a-z0-9_\\-.]+";
+    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:;\\\"'<,>.?/]+";
+    int minLength = 6;
     
     public Register() {
         initComponents();
@@ -95,22 +104,106 @@ public class Register extends javax.swing.JPanel {
                 .addContainerGap(64, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
+    
+    private void registerAction(){
+        SQLite sql = new SQLite();
+        sql.addUser(usernameFld.getText(), passwordFld.getText(), 2);
+        usernameFld.setText("");
+        passwordFld.setText("");
+        confpassFld.setText("");
+        sql = null;
+    }
+    
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
-        /**
-         * 0. Initial role code is 1.
-         * 1. Verify inputs for completion and validity.
-         * 2. Set role code to 2 condition/action 1 is met.
-         */
-        frame.registerAction(usernameFld.getText(), passwordFld.getText(), confpassFld.getText());
-        frame.loginNav();
+        if (fieldIsBlank()){
+            emptyFields();
+        }
+        else if(fieldIsInvalid()){
+            invalidCharacters();
+        }
+        else if(!passwordFld.getText().equals(confpassFld.getText())){
+            passwordMismatch();
+        }else{
+            SQLite sql = new SQLite();
+            if (sql.isUserExists(usernameFld.getText())){
+                userExists();
+            }else if(!isValidPassword(passwordFld.getText())){
+                invalidPassword();
+            }else{
+                sql = null;
+                registerAction();
+                frame.loginNav();
+            }
+            sql = null;
+        }
     }//GEN-LAST:event_registerBtnActionPerformed
 
     private void backBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBtnActionPerformed
         clearFields();
         frame.loginNav();
     }//GEN-LAST:event_backBtnActionPerformed
-
+    
+    private boolean isValidPassword(String password){
+        boolean uppercaseRegex = Pattern.compile("[A-Z]+").matcher(password).matches();
+        boolean lowercaseRegex = Pattern.compile("[a-z]+").matcher(password).matches();
+        boolean digitRegex = Pattern.compile("[0-9]+").matcher(password).matches();
+        boolean specialRegex = Pattern.compile("[~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:;\\\"'<,>.?/]+").matcher(password).matches();
+        
+        if(!(uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() < minLength))
+            return false;
+        return true;
+    }
+    
+    private void userExists(){
+        JOptionPane.showMessageDialog(frame, "Username already exists, please use another username.", "Invalid Registration", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void passwordMismatch(){
+        JOptionPane.showMessageDialog(frame, "Passwords don't match, try again.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    private void invalidPassword(){
+        JOptionPane.showMessageDialog(frame, "Invalid password, please try again.\n"
+                + "Minimum Password Length:" + minLength + "\n"
+                + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\\\-+={[}]|:;\\\"'<,>.?/)\n"
+                        + "At least 1 uppercase letter, 1 digit, 1 special symbol", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    private void invalidCharacters(){
+        JOptionPane.showMessageDialog(frame, "Invalid inputs, please try again.\n"
+                + "Valid Username Characters: Lowercase Letters, Numbers, -, _, .\n"
+                + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+={[}]|:;\"'<,>.?/)", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    private void emptyFields(){
+        JOptionPane.showMessageDialog(frame, "Empty fields, please try again.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    /**
+     * Checks if fields are valid such that
+     * it meets the minimum requirements of 
+     * acceptable characters.
+     * @return 
+     */
+    private boolean fieldIsInvalid(){
+        boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
+        boolean passwordValid = Pattern.compile(passwordRegex).matcher(passwordFld.getText()).matches();
+        boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(confpassFld.getText()).matches();
+        if (usernameValid && passwordValid && confPasswordValid)
+            return false;
+        return true;
+    }
+    
+    /**
+     * Checks if login input fields are empty.
+     * @return True if either are blank, false if otherwise.
+     */
+    private boolean fieldIsBlank(){
+        if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank() || confpassFld.getText().isBlank())
+            return true;
+        return false;
+    }
+    
     /**
      * Clear input fields of typed data.
      */

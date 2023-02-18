@@ -22,13 +22,22 @@ public class Main {
         // Initialize a driver object
         sqlite = new SQLite();
         
-        
         //buildDB();
         checkLogs();
+        checkUsers();
         
         //Initialize User Interface
         Frame frame = new Frame();
         frame.init(this);
+    }
+    
+    private void checkUsers(){
+        ArrayList<User> users = sqlite.getUsers();
+        for(int i = 0; i < users.size(); i++){
+            User u = users.get(i);
+            System.out.println(u.getId() + ": " + u.getUsername() + " " + u.getRole() + " " + u.getLocked());
+        }
+        users = null;
     }
     
     /**
@@ -41,12 +50,12 @@ public class Main {
             Logs log = logs.get(i);
             System.out.println(log.getTimestamp() + ": [" + log.getEvent() + "] " + log.getDesc() + " by " + log.getUsername());
         }
+        logs = null;
     }
     
     /**
      * Builds the DB with default values.
      * Contains hashed password instead of plain-text.
-     * 
      */
     private void buildDB(){
         // Create a database

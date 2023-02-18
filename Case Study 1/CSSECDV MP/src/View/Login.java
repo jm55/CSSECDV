@@ -16,6 +16,12 @@ public class Login extends javax.swing.JPanel {
     public Frame frame;
     private SQLite sql;
     
+    private final String usernameRegex = "[a-z0-9_\\-.]+";
+    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:;\\\"'<,>.?/]+";
+    
+    private int loginAttempt = 0;
+    private final int loginAttemptLimit = 8;
+    
     public Login() {
         initComponents();
     }
@@ -95,35 +101,51 @@ public class Login extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
         //Check if both fields are empty or invalid characters
-        if (fieldsIsEmpty() || fieldIsInvalid()){
+        if (fieldIsBlank() || fieldIsInvalid()){
             invalidLogin();
         }else{
             sql = new SQLite();
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
-                if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid uname and pword.
+                if(sql.isUserLocked(usernameFld.getText())){ //
+                    userLocked();
+                    usernameFld.setText("");
+                    passwordFld.setText("");
+                    sql.addLogs("NOTICE", usernameFld.getText(), "Locked account attempted to login", 
+                                new Timestamp(new Date().getTime()).toString());
+                    sql = null;
+                }else{ //User is not locked
+                    if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid uname and pword.
                     //Log user that logged in.
                     sql.addLogs("NOTICE", usernameFld.getText(), "Successful login", 
                             new Timestamp(new Date().getTime()).toString());
-                    
                     //Log Login to DB.
                     usernameFld.setText("");
                     passwordFld.setText("");
                     
                     sql = null;
                     frame.mainNav();
-                }else{ //Invalid uname and pword.
-                    sql.addLogs("NOTICE", usernameFld.getText(), "Attempted to login", 
-                            new Timestamp(new Date().getTime()).toString());
-                    invalidLogin();
+                    }else{ //Invalid password.
+                        sql.addLogs("NOTICE", usernameFld.getText(), "Attempted to login", 
+                                new Timestamp(new Date().getTime()).toString());
+                        invalidLogin();
+                        loginAttempt++;
+                        if(loginAttempt > loginAttemptLimit){
+                            if(sql.lockUser(usernameFld.getText()))
+                                userLocked();
+                        }
+                    }
                 }
             }else{ 
-                //No user specified (assumes it meets the field 
-                //validation conditions)
+                //No user found!(assumes it meets the field validation conditions)
                 invalidLogin();
             }
             sql = null;
         }
     }//GEN-LAST:event_loginBtnActionPerformed
+    
+    private void userLocked(){
+        JOptionPane.showMessageDialog(frame, "Login of user is not allowed at the moment.", "User Locked", JOptionPane.WARNING_MESSAGE);
+    }
     
     /**
      * Checks if fields are valid such that
@@ -132,8 +154,6 @@ public class Login extends javax.swing.JPanel {
      * @return 
      */
     private boolean fieldIsInvalid(){
-        String usernameRegex = "[a-z0-9_\\-.]+";
-        String passwordRegex = "[a-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:;\\\"'<,>.?/]+";
         boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
         boolean passwordValid = Pattern.compile(passwordRegex).matcher(passwordFld.getText()).matches();
         if (usernameValid && passwordValid)
@@ -145,7 +165,7 @@ public class Login extends javax.swing.JPanel {
      * Checks if login input fields are empty.
      * @return True if either are blank, false if otherwise.
      */
-    private boolean fieldsIsEmpty(){
+    private boolean fieldIsBlank(){
         if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank())
                 return true;
         return false;
