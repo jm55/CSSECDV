@@ -115,10 +115,9 @@ public class Register extends javax.swing.JPanel {
     }
     
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
-        if (fieldIsBlank()){
+        if (isFieldBlank()){
             emptyFields();
-        }
-        else if(fieldIsInvalid()){
+        }else if(isFieldInvalid()){
             invalidCharacters();
         }
         else if(!passwordFld.getText().equals(confpassFld.getText())){
@@ -185,7 +184,7 @@ public class Register extends javax.swing.JPanel {
      * acceptable characters.
      * @return 
      */
-    private boolean fieldIsInvalid(){
+    private boolean isFieldInvalid(){
         boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
         boolean passwordValid = Pattern.compile(passwordRegex).matcher(passwordFld.getText()).matches();
         boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(confpassFld.getText()).matches();
@@ -198,7 +197,7 @@ public class Register extends javax.swing.JPanel {
      * Checks if login input fields are empty.
      * @return True if either are blank, false if otherwise.
      */
-    private boolean fieldIsBlank(){
+    private boolean isFieldBlank(){
         if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank() || confpassFld.getText().isBlank())
             return true;
         return false;

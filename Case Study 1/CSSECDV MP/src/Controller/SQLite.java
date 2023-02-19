@@ -366,7 +366,6 @@ public class SQLite {
      * @param locked Lock value.
      */
     private boolean updateUserLocked(String username, int locked){
-        System.out.println("username: " + username);
         String sql = "UPDATE users SET locked=" + locked + " WHERE username='" + username + "';";
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){

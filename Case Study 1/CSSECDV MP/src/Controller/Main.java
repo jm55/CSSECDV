@@ -23,8 +23,8 @@ public class Main {
         sqlite = new SQLite();
         
         //buildDB();
-        checkLogs();
-        checkUsers();
+        //checkLogs();
+        //checkUsers();
         
         //Initialize User Interface
         Frame frame = new Frame();

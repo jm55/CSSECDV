@@ -107,31 +107,30 @@ public class Login extends javax.swing.JPanel {
             sql = new SQLite();
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
                 if(sql.isUserLocked(usernameFld.getText())){ //
-                    userLocked();
-                    usernameFld.setText("");
-                    passwordFld.setText("");
-                    sql.addLogs("NOTICE", usernameFld.getText(), "Locked account attempted to login", 
+                    sql.addLogs("LOGIN", usernameFld.getText(), "Locked account attempted to login", 
                                 new Timestamp(new Date().getTime()).toString());
                     sql = null;
+                    userLocked();
                 }else{ //User is not locked
-                    if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid uname and pword.
-                    //Log user that logged in.
-                    sql.addLogs("NOTICE", usernameFld.getText(), "Successful login", 
-                            new Timestamp(new Date().getTime()).toString());
-                    //Log Login to DB.
-                    usernameFld.setText("");
-                    passwordFld.setText("");
-                    
-                    sql = null;
-                    frame.mainNav();
+                    if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid username and password.
+                        sql.addLogs("LOGIN", usernameFld.getText(), "Successful login", 
+                                new Timestamp(new Date().getTime()).toString());
+                        sql = null;
+                        loginAttempt = 0;
+                        clearInputs();
+                        frame.mainNav();
                     }else{ //Invalid password.
-                        sql.addLogs("NOTICE", usernameFld.getText(), "Attempted to login", 
+                        sql.addLogs("LOGIN", usernameFld.getText(), "Attempted to login", 
                                 new Timestamp(new Date().getTime()).toString());
                         invalidLogin();
                         loginAttempt++;
                         if(loginAttempt > loginAttemptLimit){
-                            if(sql.lockUser(usernameFld.getText()))
+                            if(sql.lockUser(usernameFld.getText())){
+                                sql.addLogs("LOGIN", usernameFld.getText(), "Account locked due to excessive login attempts", 
+                                new Timestamp(new Date().getTime()).toString());
+                                clearInputs();
                                 userLocked();
+                            }
                         }
                     }
                 }
@@ -143,8 +142,14 @@ public class Login extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_loginBtnActionPerformed
     
+    private void clearInputs(){
+        usernameFld.setText("");
+        passwordFld.setText("");
+    }
+    
     private void userLocked(){
-        JOptionPane.showMessageDialog(frame, "Login of user is not allowed at the moment.", "User Locked", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Logging in is not allowed at the moment.", "Login Error", JOptionPane.WARNING_MESSAGE);
+        clearInputs();
     }
     
     /**
