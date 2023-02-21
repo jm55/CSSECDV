@@ -17,8 +17,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -365,8 +363,28 @@ public class SQLite {
      * @param username Username being locked
      * @param locked Lock value.
      */
-    private boolean updateUserLocked(String username, int locked){
+    private boolean setLocked(String username, int locked){
         String sql = "UPDATE users SET locked=" + locked + " WHERE username='" + username + "';";
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement()){
+            return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
+        } catch (Exception ex) {
+            System.out.print(ex);
+            return true;
+        }
+    }
+    
+    /**
+     * Sets the Role number of a given user.
+     * @param username Username of user.
+     * @param role Role code to be set
+     * @return True if successful, false if otherwise.
+     */
+    private boolean setRole(String username, int role){
+        if(role < 0 || role > 5){
+            return false;
+        }
+        String sql = "UPDATE users SET role=" + role + " WHERE username='" + username + "';";
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
             return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
@@ -420,8 +438,9 @@ public class SQLite {
      */
     public boolean lockUser(String username){
         User u = getUser(username);
-        if (u != null && u.getLocked() == 0)
-            return updateUserLocked(username, 1);
+        if (u != null && u.getLocked() == 0){
+            return setRole(username, 1) && setLocked(username, 1);
+        }
         return false;
     }
     
@@ -432,8 +451,9 @@ public class SQLite {
      */
     public boolean unlockUser(String username){
         User u = getUser(username);
-        if (u != null && u.getLocked() != 0)
-            return updateUserLocked(username, 0);
+        if (u != null && u.getLocked() != 0){
+            return setRole(username, 2) && setLocked(username, 0);
+        }
         return false;
     }
     
