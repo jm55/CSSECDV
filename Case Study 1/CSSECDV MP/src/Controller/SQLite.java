@@ -169,6 +169,14 @@ public class SQLite {
         }
     }
     
+    /**
+     * Add logs using Logs object as a parameter.
+     * @param l Logs object to be logged.
+     */
+    public void addLogs(Logs l){
+        addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
+    }
+    
     public void addLogs(String event, String username, String desc, String timestamp) {
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES('" + event + "','" + username + "','" + desc + "','" + timestamp + "')";
         

@@ -1,15 +1,12 @@
 
 package View;
 
-import java.util.ArrayList;
-
 import Controller.SQLite;
-import Model.User;
-import javax.swing.JOptionPane;
+//import Model.User;
+import Model.Logs;
 
+import javax.swing.JOptionPane;
 import java.util.regex.Pattern;
-import java.util.Date;
-import java.sql.Timestamp;
 
 public class Login extends javax.swing.JPanel {
 
@@ -17,7 +14,7 @@ public class Login extends javax.swing.JPanel {
     private SQLite sql;
     
     private final String usernameRegex = "[a-z0-9_\\-.]+";
-    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:;\\\"'<,>.?/]+";
+    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
     
     private int loginAttempt = 0;
     private final int loginAttemptLimit = 8;
@@ -25,14 +22,14 @@ public class Login extends javax.swing.JPanel {
     public Login() {
         initComponents();
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
         usernameFld = new javax.swing.JTextField();
-        passwordFld = new javax.swing.JTextField();
+        passwordFld = new javax.swing.JPasswordField();
         registerBtn = new javax.swing.JButton();
         loginBtn = new javax.swing.JButton();
 
@@ -45,11 +42,13 @@ public class Login extends javax.swing.JPanel {
         usernameFld.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         usernameFld.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         usernameFld.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true), "USERNAME", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
+        usernameFld.setDragEnabled(true);
 
         passwordFld.setBackground(new java.awt.Color(240, 240, 240));
         passwordFld.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         passwordFld.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        passwordFld.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true), "PASSWORD", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
+        passwordFld.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true), "PASSWORD", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
+        passwordFld.setDragEnabled(true);
 
         registerBtn.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         registerBtn.setText("REGISTER");
@@ -74,19 +73,19 @@ public class Login extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(200, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(passwordFld)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(registerBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(usernameFld)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(passwordFld, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(200, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(88, Short.MAX_VALUE)
+                .addContainerGap(106, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(50, 50, 50)
                 .addComponent(usernameFld, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -96,7 +95,7 @@ public class Login extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(registerBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(126, Short.MAX_VALUE))
+                .addContainerGap(108, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
@@ -106,28 +105,24 @@ public class Login extends javax.swing.JPanel {
         }else{
             sql = new SQLite();
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
-                if(sql.isUserLocked(usernameFld.getText())){ //
-                    sql.addLogs("LOGIN", usernameFld.getText(), "Locked account attempted to login", 
-                                new Timestamp(new Date().getTime()).toString());
+                if(sql.isUserLocked(usernameFld.getText())){
+                    sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
                     sql = null;
                     userLocked();
                 }else{ //User is not locked
                     if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid username and password.
-                        sql.addLogs("LOGIN", usernameFld.getText(), "Successful login", 
-                                new Timestamp(new Date().getTime()).toString());
+                        sql.addLogs(loginLog(usernameFld.getText(), "Successful login"));
                         sql = null;
                         loginAttempt = 0;
                         clearInputs();
                         frame.mainNav();
                     }else{ //Invalid password.
-                        sql.addLogs("LOGIN", usernameFld.getText(), "Attempted to login", 
-                                new Timestamp(new Date().getTime()).toString());
+                        sql.addLogs(loginLog(usernameFld.getText(), "Failed attempt to login"));
                         invalidLogin();
                         loginAttempt++;
                         if(loginAttempt > loginAttemptLimit){
                             if(sql.lockUser(usernameFld.getText())){
-                                sql.addLogs("LOGIN", usernameFld.getText(), "Account locked due to excessive login attempts", 
-                                new Timestamp(new Date().getTime()).toString());
+                                sql.addLogs(loginLog(usernameFld.getText(), "Account locked due to excessive login attempts"));
                                 clearInputs();
                                 userLocked();
                             }
@@ -137,6 +132,7 @@ public class Login extends javax.swing.JPanel {
             }else{ 
                 //No user found!(assumes it meets the field validation conditions)
                 invalidLogin();
+                sql.addLogs(loginLog(usernameFld.getText(), "Unknown account attempted to login"));
             }
             sql = null;
         }
@@ -147,6 +143,9 @@ public class Login extends javax.swing.JPanel {
         passwordFld.setText("");
     }
     
+    /**
+     * Shows popup that the user account being attempted to login is not accessible or cannot be logged in.
+     */
     private void userLocked(){
         JOptionPane.showMessageDialog(frame, "Logging in is not allowed at the moment.", "Login Error", JOptionPane.WARNING_MESSAGE);
         clearInputs();
@@ -187,11 +186,21 @@ public class Login extends javax.swing.JPanel {
         JOptionPane.showMessageDialog(frame, "Invalid username or password, please try again.", "Invalid Login", JOptionPane.WARNING_MESSAGE);
         passwordFld.setText("");
     }
+    
+    /**
+     * Create a Logs object for logging on Login related events.
+     * @param username Username of the user attempting to login 
+     * @param desc Description of the login event.
+     * @return Logs object from the given parameters
+     */
+    private Logs loginLog(String username, String desc){
+        return new Logs("LOGIN", username, desc);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JButton loginBtn;
-    private javax.swing.JTextField passwordFld;
+    private javax.swing.JPasswordField passwordFld;
     private javax.swing.JButton registerBtn;
     private javax.swing.JTextField usernameFld;
     // End of variables declaration//GEN-END:variables
