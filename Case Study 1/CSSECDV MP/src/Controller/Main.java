@@ -1,6 +1,5 @@
 package Controller;
 
-
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -99,39 +98,39 @@ public class Main {
         // Get users
         ArrayList<History> histories = sqlite.getHistory();
         for(int nCtr = 0; nCtr < histories.size(); nCtr++){
-        System.out.println("===== History " + histories.get(nCtr).getId() + " =====");
-        System.out.println(" Username: " + histories.get(nCtr).getUsername());
-        System.out.println(" Name: " + histories.get(nCtr).getName());
-        System.out.println(" Stock: " + histories.get(nCtr).getStock());
-        System.out.println(" Timestamp: " + histories.get(nCtr).getTimestamp());
+            System.out.println("===== History " + histories.get(nCtr).getId() + " =====");
+            System.out.println(" Username: " + histories.get(nCtr).getUsername());
+            System.out.println(" Name: " + histories.get(nCtr).getName());
+            System.out.println(" Stock: " + histories.get(nCtr).getStock());
+            System.out.println(" Timestamp: " + histories.get(nCtr).getTimestamp());
         }
 
         // Get users
         ArrayList<Logs> logs = sqlite.getLogs();
         for(int nCtr = 0; nCtr < logs.size(); nCtr++){
-        System.out.println("===== Logs " + logs.get(nCtr).getId() + " =====");
-        System.out.println(" Username: " + logs.get(nCtr).getEvent());
-        System.out.println(" Password: " + logs.get(nCtr).getUsername());
-        System.out.println(" Role: " + logs.get(nCtr).getDesc());
-        System.out.println(" Timestamp: " + logs.get(nCtr).getTimestamp());
+            System.out.println("===== Logs " + logs.get(nCtr).getId() + " =====");
+            System.out.println(" Username: " + logs.get(nCtr).getEvent());
+            System.out.println(" Password: " + logs.get(nCtr).getUsername());
+            System.out.println(" Role: " + logs.get(nCtr).getDesc());
+            System.out.println(" Timestamp: " + logs.get(nCtr).getTimestamp());
         }
 
         // Get users
         ArrayList<Product> products = sqlite.getProduct();
         for(int nCtr = 0; nCtr < products.size(); nCtr++){
-        System.out.println("===== Product " + products.get(nCtr).getId() + " =====");
-        System.out.println(" Name: " + products.get(nCtr).getName());
-        System.out.println(" Stock: " + products.get(nCtr).getStock());
-        System.out.println(" Price: " + products.get(nCtr).getPrice());
+            System.out.println("===== Product " + products.get(nCtr).getId() + " =====");
+            System.out.println(" Name: " + products.get(nCtr).getName());
+            System.out.println(" Stock: " + products.get(nCtr).getStock());
+            System.out.println(" Price: " + products.get(nCtr).getPrice());
         }
         // Get users
         ArrayList<User> users = sqlite.getUsers();
         for(int nCtr = 0; nCtr < users.size(); nCtr++){
-        System.out.println("===== User " + users.get(nCtr).getId() + " =====");
-        System.out.println(" Username: " + users.get(nCtr).getUsername());
-        System.out.println(" Password: " + users.get(nCtr).getPassword());
-        System.out.println(" Role: " + users.get(nCtr).getRole());
-        System.out.println(" Locked: " + users.get(nCtr).getLocked());
+            System.out.println("===== User " + users.get(nCtr).getId() + " =====");
+            System.out.println(" Username: " + users.get(nCtr).getUsername());
+            System.out.println(" Password: " + users.get(nCtr).getPassword());
+            System.out.println(" Role: " + users.get(nCtr).getRole());
+            System.out.println(" Locked: " + users.get(nCtr).getLocked());
         }
     }
     
