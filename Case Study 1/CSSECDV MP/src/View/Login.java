@@ -107,12 +107,10 @@ public class Login extends javax.swing.JPanel {
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
                 if(sql.isUserLocked(usernameFld.getText())){
                     sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
-                    sql = null;
                     userLocked();
                 }else{ //User is not locked
                     if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid username and password.
                         sql.addLogs(loginLog(usernameFld.getText(), "Successful login"));
-                        sql = null;
                         loginAttempt = 0;
                         clearInputs();
                         frame.mainNav();

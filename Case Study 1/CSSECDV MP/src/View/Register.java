@@ -109,13 +109,11 @@ public class Register extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     
-    private void registerAction(){
-        SQLite sql = new SQLite();
+    private void registerAction(SQLite sql){
         sql.addUser(usernameFld.getText(), passwordFld.getText(), 2);
         usernameFld.setText("");
         passwordFld.setText("");
         confpassFld.setText("");
-        sql = null;
     }
     
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
@@ -123,19 +121,17 @@ public class Register extends javax.swing.JPanel {
             emptyFields();
         }else if(isFieldInvalid()){
             invalidCharacters();
-        }
-        else if(!passwordFld.getText().equals(confpassFld.getText())){
+        }else if(!passwordFld.getText().equals(confpassFld.getText())){
             passwordMismatch();
-        }else{
+        }else if(!isValidPassword(passwordFld.getText())){
+                invalidPassword();
+        }else{ //All prior conditions are met
             SQLite sql = new SQLite();
             if (sql.isUserExists(usernameFld.getText())){
                 userExists();
-                sql.addLogs(registerLog("New user attempted to register using unavailable username: " + usernameFld.getName()));
-            }else if(!isValidPassword(passwordFld.getText())){
-                invalidPassword();
+                sql.addLogs(registerLog("New user attempted to register using unavailable username: " + usernameFld.getText()));
             }else{
-                sql = null;
-                registerAction();
+                registerAction(sql);
                 sql.addLogs(registerLog("New user registered as " + usernameFld.getText()));
                 frame.loginNav();
             }
@@ -163,14 +159,30 @@ public class Register extends javax.swing.JPanel {
      * @return True if valid, false if otherwise
      */
     private boolean isValidPassword(String password){
-        boolean uppercaseRegex = Pattern.compile("[A-Z]+").matcher(password).matches();
-        boolean lowercaseRegex = Pattern.compile("[a-z]+").matcher(password).matches();
-        boolean digitRegex = Pattern.compile("[0-9]+").matcher(password).matches();
-        boolean specialRegex = Pattern.compile("[~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+").matcher(password).matches();
+        final String uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final String lowercase = uppercase.toLowerCase();
+        final String digits = "0123456789";
+        final String special = "~`!@#$%^&*()_-+={[}]|:\\<,>.?/";
         
-        if(!(uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() < minLength))
-            return false;
-        return true;
+        boolean uppercaseRegex = false;
+        boolean lowercaseRegex = false;
+        boolean digitRegex = false;
+        boolean specialRegex = false;
+        
+        for(int u = 0; u < uppercase.length(); u++){
+            if(password.contains(uppercase.charAt(u) + ""))
+                uppercaseRegex = true;
+            if(password.contains(lowercase.charAt(u) + ""))
+                lowercaseRegex = true;
+        }
+        for(int d = 0; d < digits.length(); d++)
+            if(password.contains(digits.charAt(d) + ""))
+                digitRegex = true;
+        for(int s = 0; s < special.length(); s++)
+            if(password.contains(special.charAt(s) + ""))
+                specialRegex = true;
+            
+        return (uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() >= minLength);
     }
     
     /***
