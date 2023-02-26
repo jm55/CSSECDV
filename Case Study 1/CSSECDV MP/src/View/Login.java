@@ -108,7 +108,7 @@ public class Login extends javax.swing.JPanel {
                     sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
                     userLocked();
                 }else{ //User is not locked
-                    if(sql.authenticateUser(usernameFld.getText(), passwordFld.getText())){ //Valid username and password.
+                    if(sql.authenticateUser(usernameFld.getText(), getPassword())){ //Valid username and password.
                         sql.addLogs(loginLog(usernameFld.getText(), "Successful login"));
                         loginAttempt = 0;
                         clearInputs();
@@ -140,6 +140,10 @@ public class Login extends javax.swing.JPanel {
         passwordFld.setText("");
     }
     
+    private String getPassword(){
+        return new String(passwordFld.getPassword());
+    }
+    
     /**
      * Shows popup that the user account being attempted to login is not accessible or cannot be logged in.
      */
@@ -156,7 +160,7 @@ public class Login extends javax.swing.JPanel {
      */
     private boolean fieldIsInvalid(){
         boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
-        boolean passwordValid = Pattern.compile(passwordRegex).matcher(passwordFld.getText()).matches();
+        boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
         if (usernameValid && passwordValid)
             return false;
         return true;
@@ -167,7 +171,7 @@ public class Login extends javax.swing.JPanel {
      * @return True if either are blank, false if otherwise.
      */
     private boolean fieldIsBlank(){
-        if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank())
+        if (usernameFld.getText().isBlank() || getPassword().isBlank())
                 return true;
         return false;
     }

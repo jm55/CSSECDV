@@ -110,7 +110,7 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     
     private void registerAction(SQLite sql){
-        sql.addUser(usernameFld.getText(), passwordFld.getText(), 2);
+        sql.addUser(usernameFld.getText(), getPassword(), 2);
         usernameFld.setText("");
         passwordFld.setText("");
         confpassFld.setText("");
@@ -121,9 +121,9 @@ public class Register extends javax.swing.JPanel {
             emptyFields();
         }else if(isFieldInvalid()){
             invalidCharacters();
-        }else if(!passwordFld.getText().equals(confpassFld.getText())){
+        }else if(!getPassword().equals(confpassFld.getText())){
             passwordMismatch();
-        }else if(!isValidPassword(passwordFld.getText())){
+        }else if(!isValidPassword(getPassword())){
                 invalidPassword();
         }else{ //All prior conditions are met
             SQLite sql = new SQLite();
@@ -139,6 +139,10 @@ public class Register extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_registerBtnActionPerformed
 
+    private String getPassword(){
+        return new String(passwordFld.getPassword());
+    }
+    
     /**
      * Create a Logs object for logging on Register related events.
      * @param desc Description of the registration event.
@@ -233,7 +237,7 @@ public class Register extends javax.swing.JPanel {
      */
     private boolean isFieldInvalid(){
         boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
-        boolean passwordValid = Pattern.compile(passwordRegex).matcher(passwordFld.getText()).matches();
+        boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
         boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(confpassFld.getText()).matches();
         if (usernameValid && passwordValid && confPasswordValid)
             return false;
@@ -245,7 +249,7 @@ public class Register extends javax.swing.JPanel {
      * @return True if either are blank, false if otherwise.
      */
     private boolean isFieldBlank(){
-        if (usernameFld.getText().isBlank() || passwordFld.getText().isBlank() || confpassFld.getText().isBlank())
+        if (usernameFld.getText().isBlank() || getPassword().isBlank() || confpassFld.getText().isBlank())
             return true;
         return false;
     }
