@@ -25,6 +25,8 @@ public class Main {
         //checkLogs();
         //checkUsers();
         
+        sqlite = null;
+        
         //Initialize User Interface
         Frame frame = new Frame();
         frame.init(this);
