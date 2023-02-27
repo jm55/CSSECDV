@@ -192,7 +192,7 @@ public class Register extends javax.swing.JPanel {
      * Shows a popup that user exists.
      */
     private void userExists(){
-        JOptionPane.showMessageDialog(frame, "Username already exists, please use another username.", "Invalid Registration", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Username already in use, please use another username.", "Invalid Registration", JOptionPane.INFORMATION_MESSAGE);
     }
     
     /**

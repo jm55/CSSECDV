@@ -1,7 +1,6 @@
 package View;
 
 import Controller.SQLite;
-//import Model.User;
 import Model.Logs;
 
 import javax.swing.JOptionPane;
@@ -106,7 +105,7 @@ public class Login extends javax.swing.JPanel {
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
                 if(sql.isUserLocked(usernameFld.getText())){
                     sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
-                    userLocked();
+                    invalidLogin();
                 }else{ //User is not locked
                     if(sql.authenticateUser(usernameFld.getText(), getPassword())){ //Valid username and password.
                         sql.addLogs(loginLog(usernameFld.getText(), "Successful login"));
@@ -121,7 +120,7 @@ public class Login extends javax.swing.JPanel {
                             if(sql.lockUser(usernameFld.getText())){
                                 sql.addLogs(loginLog(usernameFld.getText(), "Account locked due to excessive login attempts"));
                                 clearInputs();
-                                userLocked();
+                                invalidLogin();
                             }
                         }
                     }
@@ -142,14 +141,6 @@ public class Login extends javax.swing.JPanel {
     
     private String getPassword(){
         return new String(passwordFld.getPassword());
-    }
-    
-    /**
-     * Shows popup that the user account being attempted to login is not accessible or cannot be logged in.
-     */
-    private void userLocked(){
-        JOptionPane.showMessageDialog(frame, "Logging in is not allowed at the moment.", "Login Error", JOptionPane.WARNING_MESSAGE);
-        clearInputs();
     }
     
     /**
