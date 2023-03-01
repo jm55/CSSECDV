@@ -110,9 +110,6 @@ public class Register extends javax.swing.JPanel {
     
     private void registerAction(SQLite sql){
         sql.addUser(usernameFld.getText(), getPassword(), 2);
-        usernameFld.setText("");
-        passwordFld.setText("");
-        confpassFld.setText("");
     }
     
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
@@ -132,12 +129,23 @@ public class Register extends javax.swing.JPanel {
             }else{
                 registerAction(sql);
                 sql.addLogs(registerLog("New user registered as " + usernameFld.getText()));
+                clearInputs();
                 frame.loginNav();
             }
             sql = null;
         }
     }//GEN-LAST:event_registerBtnActionPerformed
 
+    private void clearInputs(){
+        usernameFld.setText("");
+        passwordFld.setText("");
+        confpassFld.setText("");
+    }
+    
+    /**
+     * Gets the String equivalent of entry in passwordField
+     * @return 
+     */
     private String getPassword(){
         return new String(passwordFld.getPassword());
     }

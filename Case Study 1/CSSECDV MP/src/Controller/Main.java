@@ -22,7 +22,7 @@ public class Main {
         sqlite = new SQLite();
         
         //buildDB();
-        //checkLogs();
+        checkLogs();
         //checkUsers();
         
         sqlite = null;

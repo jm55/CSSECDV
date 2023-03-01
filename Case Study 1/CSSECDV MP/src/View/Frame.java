@@ -6,8 +6,13 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import javax.swing.WindowConstants;
 
+import Controller.SQLite;
+import Model.Logs;
+
 public class Frame extends javax.swing.JFrame {
 
+    private int id = -1;
+    
     public Frame() {
         initComponents();
     }
@@ -200,7 +205,10 @@ public class Frame extends javax.swing.JFrame {
     }//GEN-LAST:event_clientBtnActionPerformed
 
     private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
-        frameView.show(Container, "loginPnl");
+        SQLite sql = new SQLite();
+        sql.addLogs(new Logs("LOGOUT", sql.getUserName(id),"Logging out..."));
+        sql = null;
+        loginNav();
     }//GEN-LAST:event_logoutBtnActionPerformed
 
     public Main main;
@@ -244,11 +252,21 @@ public class Frame extends javax.swing.JFrame {
         this.setVisible(true);
     }
     
-    public void mainNav(){
+    public void mainNav(final int userID){
+        id = userID;
+        SQLite sql = new SQLite();
+        sql.addLogs(new Logs("LOGIN", sql.getUserName(id),"Successfully logged in"));
+        sql = null;
         frameView.show(Container, "homePnl");
     }
     
     public void loginNav(){
+        if(id != -1){
+            SQLite sql = new SQLite();
+            sql.addLogs(new Logs("LOGOUT", sql.getUserName(id),"Successfully logged out"));
+            sql = null;
+            id = -1;
+        }
         frameView.show(Container, "loginPnl");
     }
     

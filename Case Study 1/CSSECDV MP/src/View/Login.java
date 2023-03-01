@@ -102,16 +102,18 @@ public class Login extends javax.swing.JPanel {
             invalidLogin();
         }else{
             sql = new SQLite();
+            sql.addLogs(loginLog(usernameFld.getText(), "Logging in..."));
             if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
                 if(sql.isUserLocked(usernameFld.getText())){
                     sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
                     invalidLogin();
                 }else{ //User is not locked
                     if(sql.authenticateUser(usernameFld.getText(), getPassword())){ //Valid username and password.
-                        sql.addLogs(loginLog(usernameFld.getText(), "Successful login"));
+                        
                         loginAttempt = 0;
+                        int id = sql.getUserID(usernameFld.getText());
                         clearInputs();
-                        frame.mainNav();
+                        frame.mainNav(id);
                     }else{ //Invalid password.
                         sql.addLogs(loginLog(usernameFld.getText(), "Failed attempt to login"));
                         invalidLogin();
@@ -163,7 +165,7 @@ public class Login extends javax.swing.JPanel {
      */
     private boolean fieldIsBlank(){
         if (usernameFld.getText().isBlank() || getPassword().isBlank())
-                return true;
+            return true;
         return false;
     }
     

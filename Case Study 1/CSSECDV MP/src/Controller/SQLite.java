@@ -318,7 +318,7 @@ public class SQLite {
      * @param uname Username of user in DB.
      * @return User object that matches username, null if nothing was found.
      */
-    public User getUser(final String username){
+    private User getUser(final String username){
         ArrayList<User> users = getUsers();
         for(int i = 0; i < users.size(); i++){
             if (users.get(i).getUsername().equalsIgnoreCase(username))
@@ -327,6 +327,37 @@ public class SQLite {
         return null;
     }
     
+    /**
+     * Get a specific user by userID.
+     * @param userID UserID of user in DB.
+     * @return User object that matches userID, null if nothing was found.
+     */
+    private User getUser(final int userID){
+        ArrayList<User> users = getUsers();
+        for(int i = 0; i < users.size(); i++){
+            if (userID == users.get(i).getId())
+                return users.get(i);
+        }
+        return null;
+    }
+    
+    public String getUserName(final int id){
+        return getUser(id).getUsername();
+    }
+    
+    /**
+     * Gets userID of user specified by username.
+     * @param username
+     * @return ID of a given username, null if not found.
+     */
+    public int getUserID(final String username){
+        return getUser(username).getId();
+    }
+    
+    /**
+     * Removes a user specified by username
+     * @param username 
+     */
     public void removeUser(String username) {
         String sql = "DELETE FROM users WHERE username='" + username + "';";
 
