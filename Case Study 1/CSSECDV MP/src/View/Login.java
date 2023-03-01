@@ -109,7 +109,6 @@ public class Login extends javax.swing.JPanel {
                     invalidLogin();
                 }else{ //User is not locked
                     if(sql.authenticateUser(usernameFld.getText(), getPassword())){ //Valid username and password.
-                        
                         loginAttempt = 0;
                         int id = sql.getUserID(usernameFld.getText());
                         clearInputs();

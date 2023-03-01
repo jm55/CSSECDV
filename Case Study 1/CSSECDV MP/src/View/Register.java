@@ -12,7 +12,7 @@ public class Register extends javax.swing.JPanel {
 
     private final String usernameRegex = "[a-z0-9_\\-.]+";
     private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
-    int minLength = 6;
+    private final int minLength = 8;
     
     public Register() {
         initComponents();
@@ -245,7 +245,7 @@ public class Register extends javax.swing.JPanel {
     private boolean isFieldInvalid(){
         boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
         boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
-        boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(confpassFld.getText()).matches();
+        boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(new String(confpassFld.getPassword())).matches();
         if (usernameValid && passwordValid && confPasswordValid)
             return false;
         return true;
