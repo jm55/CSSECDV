@@ -1,5 +1,6 @@
 package Controller;
 
+import Controller.HashCrypt;
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -26,7 +27,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class Main {
     
     public SQLite sqlite;
-    private String session = "";
+    private String session = null;
+    private HashCrypt hs = new HashCrypt();
     
     public static void main(String[] args) {
         new Main().init();
@@ -37,8 +39,8 @@ public class Main {
         sqlite = new SQLite();
         
         //buildDB();
-        checkLogs();
-        checkUsers();
+        //checkLogs();
+        //checkUsers();
         
         //Initialize User Interface
         Frame frame = new Frame();
@@ -46,91 +48,39 @@ public class Main {
     }
     
     public void resetSession(){
-        this.session = "";
+        this.session = null;
     }
     
     public void createSession(final int id){
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyyHH:mm:ss");
-        String datetime = new SimpleDateFormat("dd/MM/yyyyHH:mm:ss").format(new Date());
-        String sessionID = Base64.getEncoder().encodeToString(datetime.getBytes()) + "," + (id+"")+ "," +sqlite.getUserName(id) + "," + (sqlite.getUserRole(id)+"");
-        
-        this.session = encrypt(sessionID);
-        
-        sessionID = null;
-        datetime = null;
+        if(sqlite.isUserExists(id)){
+            this.session = hs.getEncryptedSession(hs.getSessionString(id, sqlite.getUserName(id), sqlite.getUserRole(id)));
+        }else{
+            this.session = null;
+        }
     }
     
-    public Byte getSessionRole(){
+    public int getSessionRole(){
         if(this.session == "" || this.session == null)
             return Integer.valueOf(0).byteValue();
-        return Integer.valueOf(Integer.parseInt(extractSessionValue()[3])).byteValue();
+        return Integer.valueOf(Integer.parseInt(extractSessionValue()[3]));
     }
     
-    public Byte getSessionUserID(){
+    public int getSessionUserID(){
         if(this.session == "" || this.session == null)
             return Integer.valueOf(-1).byteValue();
-        return Integer.valueOf(Integer.parseInt(extractSessionValue()[1])).byteValue();
+        return Integer.valueOf(Integer.parseInt(extractSessionValue()[1]));
     }
     
-    public Byte getSessionUserName(){
+    public String getSessionUserName(){
         if(this.session == "" || this.session == null)
-            return Integer.valueOf(-1).byteValue();
-        return Integer.valueOf(Integer.parseInt(extractSessionValue()[2])).byteValue();
+            return null;
+        return extractSessionValue()[2];
     }
     
     public String[] extractSessionValue(){
         if(this.session == "" || this.session == null)
             return null;
-        return decrypt(this.session).split(",");
-    }
-    
-    /**
-     * Gets AES configuration for hashing function.
-     * @return SecretKeySpec object that contains configured AES.
-     */
-    private final SecretKeySpec AES(){
-        final String privateKey = "C5SecDV_s11_5esSi0n";
-        MessageDigest sha;
-        byte[] key;
-        try {
-            key = privateKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-256");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 24);
-            return new SecretKeySpec(key, "AES");
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
-    /**
-     * Gets the hash of a given plain-text password.
-     * @param plaintext
-     * @return 
-     */
-    private String encrypt(final String plaintext){
-        try {
-            Cipher cipher;
-            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES());
-            return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
-    private String decrypt(final String ciphertext){
-        try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES());
-            byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
-            return new String(plaintext);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
+        return hs.getDecryptedSession(this.session).split(",");
     }
     
     private void checkUsers(){

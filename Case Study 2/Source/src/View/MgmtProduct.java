@@ -5,6 +5,7 @@
  */
 package View;
 
+import Controller.Main;
 import Controller.SQLite;
 import Model.Product;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MgmtProduct extends javax.swing.JPanel {
 
+    private Main m = null;
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     
@@ -35,13 +37,31 @@ public class MgmtProduct extends javax.swing.JPanel {
 //        deleteBtn.setVisible(false);
     }
 
-    public void init(){
-        //      CLEAR TABLE
+    public void init(Main m){
+        this.m = m;
+        
+        if(this.m.getSessionRole() == 2){ //Client
+            //UNCOMMENT TO DISABLE BUTTONS
+            //purchaseBtn.setVisible(false);
+            addBtn.setVisible(false);
+            editBtn.setVisible(false);
+            deleteBtn.setVisible(false);
+        }else if(this.m.getSessionRole() == 3 || this.m.getSessionRole() == 4){ //Staff/Manager
+            purchaseBtn.setVisible(false);
+            //addBtn.setVisible(false);
+            //editBtn.setVisible(false);
+            //deleteBtn.setVisible(false);
+        }else{
+            this.m = null;
+            return;
+        }
+        
+        //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
             tableModel.removeRow(0);
         }
         
-//      LOAD CONTENTS
+        //LOAD CONTENTS
         ArrayList<Product> products = sqlite.getProduct();
         for(int nCtr = 0; nCtr < products.size(); nCtr++){
             tableModel.addRow(new Object[]{

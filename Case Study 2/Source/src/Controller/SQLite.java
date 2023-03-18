@@ -1,5 +1,6 @@
 package Controller;
 
+import Controller.HashCrypt;
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -25,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SQLite {
     
+    private HashCrypt hs = new HashCrypt();
     public int DEBUG_MODE = 0;
     String driverURL = "jdbc:sqlite:" + "database.db";
     
@@ -202,7 +204,7 @@ public class SQLite {
     }
     
     public void addUser(String username, String password) {
-        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + getHash(password) + "')";
+        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + hs.getEncryptedPass(passwordHash(username, password)) + "')";
         
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
@@ -220,7 +222,7 @@ public class SQLite {
     }
     
     public void addUser(String username, String password, int role) {
-        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + getHash(password) + "','" + role + "')";
+        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + hs.getEncryptedPass(passwordHash(username, password)) + "','" + role + "')";
         
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
@@ -251,6 +253,17 @@ public class SQLite {
             System.out.print(ex);
         }
         return histories;
+    }
+    
+    public ArrayList<History> getHistory(String username){
+        ArrayList<History> filteredHistory = new ArrayList<History>();
+        ArrayList<History> rawHistory = getHistory();
+        
+        for(int i = 0; i < rawHistory.size(); i++)
+            if(rawHistory.get(i).getUsername().equals(username))
+                filteredHistory.add(rawHistory.get(i));
+        
+        return filteredHistory;
     }
     
     public ArrayList<Logs> getLogs(){
@@ -456,16 +469,39 @@ public class SQLite {
     }
     
     /**
+     * Checks if user exists such that it's found on the database.
+     * @param userID
+     * @return True if user exists, False if not.
+     */
+    public boolean isUserExists(final int userID){
+        if (getUser(userID) != null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    /**
      * Authenticates a user given their username and password.
      * @param username Username of user
      * @param password Password of user
      * @return True if user credentials are authenticated such that it matches the DB's contents, false if otherwise.
      */
-    public boolean authenticateUser(final String username, final String password){
-        if (getUser(username).getPassword().equals(getHash(password))){
-            return true;
+    public boolean authenticateUser(final String username, final String plaintext){
+        if(isUserExists(username)){
+            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.getSHA384(passwordHash(username, plaintext)))){
+                return true;
+            }else{
+                return false;
+            }
+                
+        }else{
+            return false;
         }
-        return false;
+    }
+    
+    private String passwordHash(final String username, final String plaintext){
+        return hs.getSHA384(username + "::" + plaintext);
     }
     
     /**
@@ -503,60 +539,5 @@ public class SQLite {
             return setRole(username, 2) && setLocked(username, 0);
         }
         return false;
-    }
-    
-    /**
-     * Gets AES configuration for hashing function.
-     * @return SecretKeySpec object that contains configured AES.
-     */
-    private final SecretKeySpec AES(){
-        final String privateKey = "C5SecDV_s11";
-        MessageDigest sha;
-        byte[] key;
-        try {
-            key = privateKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-256");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 24);
-            return new SecretKeySpec(key, "AES");
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
-    /**
-     * Gets the hash of a given plain-text password.
-     * @param plaintext
-     * @return 
-     */
-    private String getHash(final String plaintext){
-        try {
-            Cipher cipher;
-            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES());
-            return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
-    }
-    
-    /**
-     * Gets the plain text equivalent of the cipherText.
-     * DON'T USE UNLESS COMPLETELY NECESSARY
-     * @param ciphertext
-     * @return Plain text equivalent of cipherText.
-     */
-    private String getPlainText(final String ciphertext){
-        try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES());
-            byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
-            return new String(plaintext);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
-        }
-        return null;
     }
 }

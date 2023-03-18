@@ -23,7 +23,7 @@ public class MgmtHistory extends javax.swing.JPanel {
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     
-    private Main m;
+    private Main m = null;
     
     public MgmtHistory(SQLite sqlite) {
         initComponents();
@@ -37,13 +37,20 @@ public class MgmtHistory extends javax.swing.JPanel {
         table.getColumnModel().getColumn(4).setCellRenderer(rightAlign);
         table.getColumnModel().getColumn(5).setCellRenderer(rightAlign);
         
-//        UNCOMMENT TO DISABLE BUTTONS
-//        searchBtn.setVisible(false);
-//        reportBtn.setVisible(false);
     }
     
     public void init(Main m){
         this.m = m;
+        
+        
+        if(this.m.getSessionRole() != 2 && this.m.getSessionRole() != 4){
+            this.m = null;
+            return;
+        }
+        
+        //UNCOMMENT TO DISABLE BUTTONS
+        searchBtn.setVisible(false);
+        //reportBtn.setVisible(false);
         
         //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
@@ -51,18 +58,26 @@ public class MgmtHistory extends javax.swing.JPanel {
         }
         
         //LOAD CONTENTS
-        ArrayList<History> history = sqlite.getHistory();
-        for(int nCtr = 0; nCtr < history.size(); nCtr++){
-            Product product = sqlite.getProduct(history.get(nCtr).getName());
-            tableModel.addRow(new Object[]{
-                history.get(nCtr).getUsername(), 
-                history.get(nCtr).getName(), 
-                history.get(nCtr).getStock(), 
-                product.getPrice(), 
-                product.getPrice() * history.get(nCtr).getStock(), 
-                history.get(nCtr).getTimestamp()
-            });
+        ArrayList<History> history = null;
+        if(this.m.getSessionRole() == 2){ //Client
+            history = sqlite.getHistory(this.m.getSessionUserName());
+        }else if(this.m.getSessionRole() == 4){ //Manager
+            history = sqlite.getHistory();
         }
+        
+        if(history != null){
+            for(int nCtr = 0; nCtr < history.size(); nCtr++){
+                Product product = sqlite.getProduct(history.get(nCtr).getName());
+                tableModel.addRow(new Object[]{
+                    history.get(nCtr).getUsername(), 
+                    history.get(nCtr).getName(), 
+                    history.get(nCtr).getStock(), 
+                    product.getPrice(), 
+                    product.getPrice() * history.get(nCtr).getStock(), 
+                    history.get(nCtr).getTimestamp()
+                });
+            }
+        }   
     }
     
     public void designer(JTextField component, String text){

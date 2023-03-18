@@ -207,7 +207,7 @@ public class Frame extends javax.swing.JFrame {
         loginNav();
     }//GEN-LAST:event_logoutBtnActionPerformed
 
-    public Main main;
+    public static Main main = null;
     public Login loginPnl = new Login();
     public Register registerPnl = new Register();
     
@@ -228,9 +228,9 @@ public class Frame extends javax.swing.JFrame {
         loginPnl.frame = this;
         registerPnl.frame = this;
         
-        adminHomePnl.init(main.sqlite);
-        clientHomePnl.init(main.sqlite);
-        managerHomePnl.init(main.sqlite);
+        adminHomePnl.init(main.sqlite, this.main);
+        clientHomePnl.init(main.sqlite, this.main);
+        managerHomePnl.init(main.sqlite, this.main);
         staffHomePnl.init(main.sqlite, this.main);
         
         Container.setLayout(frameView);
@@ -257,15 +257,15 @@ public class Frame extends javax.swing.JFrame {
         main.createSession(userID);
         
         //Log the successful login event
-        main.sqlite.addLogs(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID().intValue()),"Successfully logged in"));
+        main.sqlite.addLogs(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged in"));
         
         frameView.show(Container, "homePnl");
         contentControl();
     }
     
     private void contentControl(){
-        disableSideBarButtons(main.getSessionRole().intValue());
-        switch(main.getSessionRole().intValue()){
+        disableSideBarButtons(main.getSessionRole());
+        switch(main.getSessionRole()){
             case 0: //Unregistered
                 registerNav();
                 break;
@@ -296,8 +296,8 @@ public class Frame extends javax.swing.JFrame {
     
     public void loginNav(){
         resetSideBarButtons();
-        if(main.getSessionUserID().intValue() != -1){
-            main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID().intValue()),"Successfully logged out"));
+        if(main.getSessionUserID() != -1){
+            main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged out"));
             main.resetSession();
         }
         this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
