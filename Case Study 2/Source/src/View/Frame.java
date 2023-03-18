@@ -270,22 +270,17 @@ public class Frame extends javax.swing.JFrame {
                 registerNav();
                 break;
             case 1: //Locked
-                System.out.println("Locked");
                 break;
             case 2: //Client
-                System.out.println("Client");
                 contentView.show(Content, "clientHomePnl");
                 break;
             case 3: //Staff
-                System.out.println("Staff");
                 contentView.show(Content, "staffHomePnl");
                 break;
             case 4: //Manager
-                System.out.println("Manager");
                 contentView.show(Content, "managerHomePnl");
                 break;
             case 5: //Admin
-                System.out.println("Admin");
                 contentView.show(Content, "adminHomePnl");
                 break;
             default:

@@ -109,7 +109,7 @@ public class HashCrypt {
         try {
             Cipher cipher;
             cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength));
+            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey));
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException ex) {
             //System.out.println("AES Error: " + ex.getLocalizedMessage());
@@ -120,7 +120,7 @@ public class HashCrypt {
     private String decrypt(final String ciphertext, final String secretKey, final int keyLength){
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength));
+            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey));
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
@@ -133,8 +133,7 @@ public class HashCrypt {
      * Gets AES configuration for hashing function.
      * @return SecretKeySpec object that contains configured AES.
      */
-    private final SecretKeySpec AES(final int keyLength){
-        final String privateKey = "C5SecDV_s11_5esSi0n";
+    private final SecretKeySpec AES(final int keyLength, final String privateKey){
         MessageDigest sha;
         byte[] key;
         try {
