@@ -1,13 +1,13 @@
 package View;
 
 import Controller.Main;
+import Controller.SQLite;
+import Model.Logs;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import javax.swing.WindowConstants;
-
-import Controller.SQLite;
-import Model.Logs;
+import javax.swing.JOptionPane;
 
 public class Frame extends javax.swing.JFrame {
     
@@ -33,6 +33,11 @@ public class Frame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(153, 153, 153));
         setMinimumSize(new java.awt.Dimension(800, 450));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                Frame.this.windowClosing(evt);
+            }
+        });
 
         HomePnl.setBackground(new java.awt.Color(102, 102, 102));
         HomePnl.setPreferredSize(new java.awt.Dimension(801, 500));
@@ -45,7 +50,7 @@ public class Frame extends javax.swing.JFrame {
         );
         ContentLayout.setVerticalGroup(
             ContentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 500, Short.MAX_VALUE)
         );
 
         Navigation.setBackground(new java.awt.Color(204, 204, 204));
@@ -133,7 +138,7 @@ public class Frame extends javax.swing.JFrame {
                 .addComponent(staffBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clientBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 139, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 156, Short.MAX_VALUE)
                 .addComponent(logoutBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -149,8 +154,8 @@ public class Frame extends javax.swing.JFrame {
         );
         HomePnlLayout.setVerticalGroup(
             HomePnlLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(Content, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(Navigation, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(Content, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout ContainerLayout = new javax.swing.GroupLayout(Container);
@@ -203,11 +208,24 @@ public class Frame extends javax.swing.JFrame {
     }//GEN-LAST:event_clientBtnActionPerformed
 
     private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
-        main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Logging out..."));
-        loginNav();
+        logoutAction();
     }//GEN-LAST:event_logoutBtnActionPerformed
 
-    public static Main main = null;
+    private void logoutAction(){
+        main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Logging out..."));
+        loginNav();
+        this.main.resetSession();
+    }
+    
+    private void windowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_windowClosing
+        if(this.main.hasSession()){
+            int exitChoice = JOptionPane.showConfirmDialog(this, "Do you want to logout to exit?", "Logout to Exit", JOptionPane.YES_NO_OPTION);
+            if(exitChoice == JOptionPane.YES_OPTION) //YES
+                logoutAction();
+        }
+    }//GEN-LAST:event_windowClosing
+
+    private Main main = null;
     public Login loginPnl = new Login();
     public Register registerPnl = new Register();
     
@@ -248,24 +266,20 @@ public class Frame extends javax.swing.JFrame {
         this.setVisible(true);
     }
     
-    public void mainNav(final int userID){
-        //Disallow exiting of program once logged in.
-        this.setDefaultCloseOperation(this.DO_NOTHING_ON_CLOSE);
-        //TODO: Write code that will warn user of the need to logout when attempting to close program.
-        
+    public void mainNav(final int userID){ 
         //Create session by userID
-        main.createSession(userID);
+        this.main.createSession(userID);
         
         //Log the successful login event
-        main.sqlite.addLogs(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged in"));
+        this.main.sqlite.addLogs(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged in"));
         
         frameView.show(Container, "homePnl");
         contentControl();
     }
     
     private void contentControl(){
-        disableSideBarButtons(main.getSessionRole());
-        switch(main.getSessionRole()){
+        disableSideBarButtons(this.main.getSessionRole());
+        switch(this.main.getSessionRole()){
             case 0: //Unregistered
                 registerNav();
                 break;
@@ -287,6 +301,7 @@ public class Frame extends javax.swing.JFrame {
                 loginNav();
                 break;
         }
+        this.setDefaultCloseOperation(this.DO_NOTHING_ON_CLOSE);
     }
     
     public void loginNav(){

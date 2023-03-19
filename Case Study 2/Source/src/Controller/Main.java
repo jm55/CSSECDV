@@ -59,6 +59,14 @@ public class Main {
         }
     }
     
+    public boolean hasSession(){
+        if(this.session == null || this.session == ""){
+            return false;
+        }else{
+            return true;
+        }
+    }
+    
     public int getSessionRole(){
         if(this.session == "" || this.session == null)
             return Integer.valueOf(0).byteValue();
