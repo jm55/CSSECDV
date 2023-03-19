@@ -4,7 +4,7 @@
  */
 package ControllerTest;
 
-import Controller.HashCrypt;
+import Utilities.HashCrypt;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -34,7 +34,7 @@ public class HashCryptTest {
         String plaintext = "abcd1234";
         
         String plaintextSHA384 = hs.getSHA384(plaintext);
-        String ciphertext = hs.getEncryptedPass(plaintext);
+        String ciphertext = hs.getEncryptedPass("",plaintext);
         String fromCiphertext = hs.getDecryptedPass(ciphertext);
         
         System.out.println("SHA384 Plaintext: " + plaintextSHA384);

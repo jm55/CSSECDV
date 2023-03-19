@@ -1,6 +1,7 @@
 package Controller;
 
-import Controller.HashCrypt;
+import Utilities.Validator;
+import Utilities.HashCrypt;
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -22,9 +23,11 @@ public class SQLite {
     private HashCrypt hs = new HashCrypt();
     public int DEBUG_MODE = 0;
     String driverURL = "jdbc:sqlite:" + "database.db";
+    private Validator validate;
     
-    public final int minLength = 8;
-    public final int maxLength = 64;
+    public SQLite(){
+        this.validate = new Validator();
+    }
     
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -162,8 +165,8 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL)){
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, toUTF_16(username));
-            pstmt.setString(2, toUTF_16(name));
+            pstmt.setString(1, toUTF_8(username));
+            pstmt.setString(2, toUTF_8(name));
             pstmt.setString(3, stock+"");
             pstmt.setString(4, timestamp);
             pstmt.executeUpdate();
@@ -186,8 +189,8 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL)){
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, toUTF_16(event));
-            pstmt.setString(2, toUTF_16(username));
+            pstmt.setString(1, toUTF_8(event));
+            pstmt.setString(2, toUTF_8(username));
             pstmt.setString(3, desc);
             pstmt.setString(4, timestamp);
             pstmt.executeUpdate();
@@ -202,7 +205,7 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL)){
                 //PREPARED STATEMENT EXAMPLE
                 PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, toUTF_16(name));
+                pstmt.setString(1, toUTF_8(name));
                 pstmt.setString(2, (stock+""));
                 pstmt.setString(3, (price+""));
                 pstmt.executeUpdate();
@@ -214,14 +217,14 @@ public class SQLite {
     public boolean addUser(String username, String password) {
         String sql = "INSERT INTO users(username,password) VALUES(?,?)";
         
-        if(!credentialWithinLimit(username, password))
+        if(!validate.credentialWithinLimit(username, password))
             return false;
         
         try (Connection conn = DriverManager.getConnection(driverURL)){
                 //PREPARED STATEMENT EXAMPLE
                 PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, toUTF_16(username));
-                pstmt.setString(2, hs.getEncryptedPass(passwordHash(toUTF_16(username), toUTF_16(password))));
+                pstmt.setString(1, toUTF_8(username));
+                pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(password)));
                 return pstmt.executeUpdate() >= 0;
         } catch (Exception ex) {
             return false;
@@ -231,27 +234,20 @@ public class SQLite {
     public boolean addUser(String username, String password, int role) {
         String sql = "INSERT INTO users(username,password,role) VALUES(?,?,?)";
         
-        if(!credentialWithinLimit(username, password))
+        if(!validate.credentialWithinLimit(username, password))
             return false;
         
         try (Connection conn = DriverManager.getConnection(driverURL)){
                 //PREPARED STATEMENT EXAMPLE
                 PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, toUTF_16(username));
-                pstmt.setString(2, hs.getEncryptedPass(passwordHash(toUTF_16(username), toUTF_16(password))));
+                pstmt.setString(1, toUTF_8(username));
+                pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(password)));
                 pstmt.setString(3, (role+""));
                 return pstmt.executeUpdate() >= 0;
         } catch (Exception ex) {
             //System.out.print(ex);
             return false;
         }
-    }
-    
-    private boolean credentialWithinLimit(String username, String password){
-        if((username.length() <= maxLength && password.length() <= maxLength) && password.length() >= minLength){
-            return true;
-        }else
-            return false;
     }
     
     public ArrayList<History> getHistory(){
@@ -447,7 +443,35 @@ public class SQLite {
      * @param locked Lock value.
      */
     private boolean setLocked(String username, int locked){
+        username = toUTF_8(username);
+        if(locked < 0) //Negating negative values
+            locked *= -1;
         String sql = "UPDATE users SET locked=" + locked + " WHERE username='" + username + "';";
+        try (Connection conn = DriverManager.getConnection(driverURL);
+            Statement stmt = conn.createStatement()){
+            return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
+        } catch (Exception ex) {
+            System.out.print(ex);
+            return true;
+        }
+    }
+    
+    public boolean changePassword(final String username, final String password){
+        final String username_UTF = toUTF_8(username);
+        final String password_UTF = toUTF_8(password);
+        if(!(validate.isValidUsernameString(username_UTF) && validate.isValidPasswordString(password_UTF)))
+            return false;
+        return setPassword(username_UTF, password_UTF);
+    }
+    
+    /**
+     * Sets the locked value of a given user to the given locked value.
+     * @param username Username being locked
+     * @param locked Lock value.
+     */
+    private boolean setPassword(final String username, final String plaintext){
+        final String encrypted = hs.getEncryptedPass(username, plaintext);
+        String sql = "UPDATE users SET password='" + encrypted + "' WHERE username='" + username + "';";
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
             return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
@@ -511,7 +535,7 @@ public class SQLite {
      */
     public boolean authenticateUser(final String username, final String plaintext){
         if(isUserExists(username)){
-            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.getSHA384(passwordHash(username, plaintext)))){
+            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.passwordHash(username, plaintext))){
                 return true;
             }else{
                 return false;
@@ -520,10 +544,6 @@ public class SQLite {
         }else{
             return false;
         }
-    }
-    
-    private String passwordHash(final String username, final String plaintext){
-        return hs.getSHA384("$%" + username+ "::" + plaintext);
     }
     
     /**
@@ -563,7 +583,7 @@ public class SQLite {
         return false;
     }
     
-    private String toUTF_16(String input){
+    private String toUTF_8(String input){
         return new String(input.getBytes(), StandardCharsets.UTF_8);
     }
 }

@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package Controller;
+package Utilities;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -50,11 +50,15 @@ public class HashCrypt {
         return null;
     }
     
-    public String getEncryptedPass(String plaintext){
-        return encrypt(getSHA384(plaintext), "C5SecDV_s11_p@5sW0rD",32);
+    public String passwordHash(final String username, final String plaintext){
+        return getSHA384("$%" + username+ "::" + plaintext);
     }
     
-    public String getDecryptedPass(String ciphertext){
+    public String getEncryptedPass(final String username, final String plaintext){
+        return encrypt(passwordHash(username, plaintext), "C5SecDV_s11_p@5sW0rD",32);
+    }
+    
+    public String getDecryptedPass(final String ciphertext){
         return decrypt(ciphertext, "C5SecDV_s11_p@5sW0rD", 32);
     }
     

@@ -50,9 +50,8 @@ public class AdminHome extends javax.swing.JPanel {
         String welcome_JP = "いらっしゃいませアドミンさん";
         
         if(this.m.getSessionUserName() != null){
-            System.out.println(this.m.getSessionUserName());
             welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
-            welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【クライエント】さん";
+            welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【アドミン】さん";
         }
         String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "</html>";
         
@@ -176,7 +175,7 @@ public void showPnl(String panelName){
     }// </editor-fold>//GEN-END:initComponents
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
-        mgmtUser.init();
+        mgmtUser.init(this.m);
         usersBtn.setForeground(Color.red);
         //productsBtn.setForeground(Color.black);
         //historyBtn.setForeground(Color.black);

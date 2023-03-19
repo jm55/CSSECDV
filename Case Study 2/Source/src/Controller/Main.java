@@ -1,6 +1,6 @@
 package Controller;
 
-import Controller.HashCrypt;
+import Utilities.HashCrypt;
 import Model.History;
 import Model.Logs;
 import Model.Product;
@@ -31,7 +31,7 @@ public class Main {
     private HashCrypt hs = new HashCrypt();
     
     private boolean rebuild = true;
-    private boolean debug = true;
+    private boolean debug = false;
     
     public static void main(String[] args) {
         new Main().init();
@@ -161,7 +161,7 @@ public class Main {
         sqlite.addUser("manager", "Qw3rty_1234", 4);
         sqlite.addUser("staff", "Qw3rty_1234", 3);
         sqlite.addUser("client1", "Qw3rty_1234", 2);
-        sqlite.addUser("client2", "Qw3rty_1234", 2);
+        sqlite.addUser("client2", "P@ssw0rd_1234", 2);
 
         // Get users
         ArrayList<History> histories = sqlite.getHistory();
@@ -200,6 +200,8 @@ public class Main {
             System.out.println(" Role: " + users.get(nCtr).getRole());
             System.out.println(" Locked: " + users.get(nCtr).getLocked());
         }
+        
+        System.out.println("");
     }
     
 }

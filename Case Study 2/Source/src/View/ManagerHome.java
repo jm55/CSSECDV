@@ -51,11 +51,10 @@ public class ManagerHome extends javax.swing.JPanel {
         String welcome_JP = "いらっしゃいませマネジャーさん";
         
         if(this.m.getSessionUserName() != null){
-            System.out.println(this.m.getSessionUserName());
             welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
-            welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【クライエント】さん";
+            welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【店長】さん";
         }
-        String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "<br><br>" + "Instance Logged in at: " + new Date().toString() + "</html>";
+        String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "</html>";
         
         Content.setLayout(contentView);
         Content.add(new Home(showable, new java.awt.Color(153,102,255)), "home");
@@ -177,7 +176,7 @@ public class ManagerHome extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
-        mgmtUser.init();
+        mgmtUser.init(this.m);
         usersBtn.setForeground(Color.red);
         productsBtn.setForeground(Color.black);
         historyBtn.setForeground(Color.black);

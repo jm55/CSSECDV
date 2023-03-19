@@ -1,5 +1,6 @@
 package View;
 
+import Utilities.Validator;
 import Controller.SQLite;
 import Model.Logs;
 
@@ -11,13 +12,12 @@ public class Login extends javax.swing.JPanel {
     public Frame frame;
     private SQLite sql;
     
-    private final String usernameRegex = "[a-z0-9_\\-.]+";
-    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
-    
+    private Validator validate;
     private int loginAttempt = 0;
     private final int loginAttemptLimit = 8;
     
     public Login() {
+        validate = new Validator();
         initComponents();
     }
     
@@ -98,29 +98,29 @@ public class Login extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
         //Check if both fields are empty or invalid characters
-        if (fieldIsBlank() || fieldIsInvalid()){
+        if (fieldIsBlank() || !validate.isLoginValid(getUsername(), getPassword())){ //Invalid Entries
             invalidLogin();
         }else{
             sql = new SQLite();
-            sql.addLogs(loginLog(usernameFld.getText(), "Logging in..."));
-            if (sql.isUserExists(usernameFld.getText())){ //Verify user existence
-                if(sql.isUserLocked(usernameFld.getText())){
-                    sql.addLogs(loginLog(usernameFld.getText(), "Locked account attempted to login"));
+            sql.addLogs(loginLog(getUsername(), "Logging in..."));
+            if (sql.isUserExists(getUsername())){ //Verify user existence
+                if(sql.isUserLocked(getUsername())){
+                    sql.addLogs(loginLog(getUsername(), "Locked account attempted to login"));
                     invalidLogin();
                 }else{ //User is not locked
-                    if(sql.authenticateUser(usernameFld.getText(), getPassword())){ //Valid username and password.
+                    if(sql.authenticateUser(getUsername(), getPassword())){ //Valid username and password.
                         loginAttempt = 0;
-                        int id = sql.getUserID(usernameFld.getText());
+                        int id = sql.getUserID(getUsername());
                         clearInputs();
                         //frame.main.createSession(id);
                         frame.mainNav(id);
                     }else{ //Invalid password.
-                        sql.addLogs(loginLog(usernameFld.getText(), "Failed attempt to login"));
+                        sql.addLogs(loginLog(getUsername(), "Failed attempt to login"));
                         invalidLogin();
                         loginAttempt++;
                         if(loginAttempt >= loginAttemptLimit)
-                            if(sql.lockUser(usernameFld.getText()))
-                                sql.addLogs(loginLog(usernameFld.getText(), "Account locked due to excessive login attempts"));
+                            if(sql.lockUser(getUsername()))
+                                sql.addLogs(loginLog(getUsername(), "Account locked due to excessive login attempts"));
                     }
                 }
             }else{ 
@@ -143,20 +143,6 @@ public class Login extends javax.swing.JPanel {
     
     private String getPassword(){
         return new String(passwordFld.getPassword());
-    }
-    
-    /**
-     * Checks if fields are valid such that
-     * it meets the minimum requirements of 
-     * acceptable characters.
-     * @return 
-     */
-    private boolean fieldIsInvalid(){
-        boolean usernameValid = Pattern.compile(usernameRegex).matcher(getUsername()).matches();
-        boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
-        if (usernameValid && passwordValid || (getUsername().length() != 0 && getPassword().length() >= new SQLite().minLength))
-            return false;
-        return true;
     }
     
     /**

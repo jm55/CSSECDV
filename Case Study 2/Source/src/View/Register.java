@@ -1,5 +1,6 @@
 package View;
 
+import Utilities.Validator;
 import Controller.SQLite;
 import Model.Logs;
 import java.util.regex.Pattern;
@@ -9,13 +10,10 @@ public class Register extends javax.swing.JPanel {
 
     public Frame frame;
 
-    private final String usernameRegex = "[a-z0-9_\\-.]+";
-    private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
-    
-    private final int minLength = new SQLite().minLength;
-    private final int maxLength = new SQLite().maxLength;
+    private Validator validate;
     
     public Register() {
+        this.validate = new Validator();
         initComponents();
     }
 
@@ -116,19 +114,19 @@ public class Register extends javax.swing.JPanel {
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
         if (isFieldBlank()){
             emptyFields();
-        }else if(isFieldInvalid()){
+        }else if(!validate.isRegisterValid(getUsername(), getPassword(), getConfPassword())){
             invalidCharacters();
         }else if(!getPassword().equals(getConfPassword())){
             passwordMismatch();
-        }else if(!isValidPassword(getPassword())){
+        }else if(!validate.isValidPasswordString(getPassword())){
             invalidPassword();
-        }else if(inputTooBig()){
+        }else if(validate.credentialWithinLimit(getUsername(), getPassword(), getConfPassword())){
             bigInputs();
         }else{ //All prior conditions are met
             SQLite sql = new SQLite();
             if (sql.isUserExists(getUsername())){
                 userExists();
-                sql.addLogs(registerLog("New user attempted to register using unavailable username: " + usernameFld.getText()));
+                sql.addLogs(registerLog("New user attempted to register using unavailable username: " + getUsername()));
             }else{
                 registerAction(sql);
                 sql.addLogs(registerLog("New user registered as " + getUsername()));
@@ -138,15 +136,6 @@ public class Register extends javax.swing.JPanel {
             sql = null;
         }
     }//GEN-LAST:event_registerBtnActionPerformed
-
-    private boolean inputTooBig(){
-        final int u = getUsername().length();
-        final int p = getPassword().length();
-        final int cp = getConfPassword().length();
-        if(u >= maxLength && p >= maxLength && cp >= maxLength)
-            return true;
-        return false;
-    }
     
     private void clearInputs(){
         usernameFld.setText("");
@@ -184,38 +173,6 @@ public class Register extends javax.swing.JPanel {
         frame.loginNav();
     }//GEN-LAST:event_backBtnActionPerformed
     
-    /**
-     * Checks if a given password meets minimum password requirements.
-     * @param password Given password
-     * @return True if valid, false if otherwise
-     */
-    private boolean isValidPassword(String password){
-        final String uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        final String lowercase = uppercase.toLowerCase();
-        final String digits = "0123456789";
-        final String special = "~`!@#$%^&*()_-+={[}]|:\\<,>.?/";
-        
-        boolean uppercaseRegex = false;
-        boolean lowercaseRegex = false;
-        boolean digitRegex = false;
-        boolean specialRegex = false;
-        
-        for(int u = 0; u < uppercase.length(); u++){
-            if(password.contains(uppercase.charAt(u) + ""))
-                uppercaseRegex = true;
-            if(password.contains(lowercase.charAt(u) + ""))
-                lowercaseRegex = true;
-        }
-        for(int d = 0; d < digits.length(); d++)
-            if(password.contains(digits.charAt(d) + ""))
-                digitRegex = true;
-        for(int s = 0; s < special.length(); s++)
-            if(password.contains(special.charAt(s) + ""))
-                specialRegex = true;
-            
-        return (uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() >= minLength && password.length() <= maxLength);
-    }
-    
     /***
      * Shows a popup that user exists.
      */
@@ -235,7 +192,7 @@ public class Register extends javax.swing.JPanel {
      */
     private void invalidPassword(){
         JOptionPane.showMessageDialog(frame, "Invalid password, please try again.\n"
-                + "Minimum Password Length:" + minLength + "\n"
+                + "Minimum Password Length:" + validate.maxLength + "\n"
                 + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/)\n"
                         + "At least 1 uppercase letter, 1 digit, 1 special symbol", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
     }
@@ -244,7 +201,7 @@ public class Register extends javax.swing.JPanel {
      * Shows a popup that the inputs are too big/long to be accepted.
      */
     private void bigInputs(){
-        JOptionPane.showMessageDialog(frame, "Inputs are too big in terms of character length, please limit this to: " + maxLength + " characters.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Inputs are too big in terms of character length, please limit this to: " + validate.maxLength + " characters.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
     }
     
     /**
@@ -263,20 +220,7 @@ public class Register extends javax.swing.JPanel {
         JOptionPane.showMessageDialog(frame, "Empty fields, please try again.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
     }
     
-    /**
-     * Checks if fields are valid such that
-     * it meets the minimum requirements of 
-     * acceptable characters.
-     * @return 
-     */
-    private boolean isFieldInvalid(){
-        boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
-        boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
-        boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(new String(confpassFld.getPassword())).matches();
-        if (usernameValid && passwordValid && confPasswordValid)
-            return false;
-        return true;
-    }
+    
     
     /**
      * Checks if login input fields are empty.

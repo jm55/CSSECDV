@@ -50,7 +50,6 @@ public class ClientHome extends javax.swing.JPanel {
         String welcome_JP = "いらっしゃいませクライエントさん";
         
         if(this.m.getSessionUserName() != null){
-            System.out.println(this.m.getSessionUserName());
             welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
             welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【クライエント】さん";
         }
@@ -176,7 +175,7 @@ public class ClientHome extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
-        mgmtUser.init();
+        mgmtUser.init(this.m);
         usersBtn.setForeground(Color.red);
         productsBtn.setForeground(Color.black);
         historyBtn.setForeground(Color.black);

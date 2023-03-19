@@ -5,8 +5,12 @@
  */
 package View;
 
+import Controller.Main;
+import Utilities.HashCrypt;
+import Utilities.Validator;
 import Controller.SQLite;
 import Model.User;
+import Model.Logs;
 import java.util.ArrayList;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -26,8 +30,13 @@ public class MgmtUser extends javax.swing.JPanel {
 
     public SQLite sqlite;
     public DefaultTableModel tableModel;
+    private Validator validate;
+    private HashCrypt hs;
+    private Main m;
     
     public MgmtUser(SQLite sqlite) {
+        this.hs = new HashCrypt();
+        this.validate = new Validator();
         initComponents();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
@@ -40,7 +49,9 @@ public class MgmtUser extends javax.swing.JPanel {
 //        chgpassBtn.setVisible(false);
     }
     
-    public void init(){
+    public void init(Main m){
+        this.m = m;
+        
         //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
             tableModel.removeRow(0);
@@ -232,9 +243,12 @@ public class MgmtUser extends javax.swing.JPanel {
     }//GEN-LAST:event_lockBtnActionPerformed
 
     private void chgpassBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chgpassBtnActionPerformed
-        if(table.getSelectedRow() >= 0){
-            JTextField password = new JPasswordField();
-            JTextField confpass = new JPasswordField();
+        int row = table.getSelectedRow();
+        if(row >= 0){
+            String uname = ""+table.getValueAt(row, 0);
+            
+            JPasswordField password = new JPasswordField();
+            JPasswordField confpass = new JPasswordField();
             designer(password, "PASSWORD");
             designer(confpass, "CONFIRM PASSWORD");
             
@@ -245,12 +259,32 @@ public class MgmtUser extends javax.swing.JPanel {
             int result = JOptionPane.showConfirmDialog(null, message, "CHANGE PASSWORD", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
             
             if (result == JOptionPane.OK_OPTION) {
-                System.out.println(password.getText());
-                System.out.println(confpass.getText());
+                if(!validate.passwordMatches(new String(password.getPassword()), new String(confpass.getPassword()))){ //Validate Pass and ConfPass Match
+                    errorDialog("Inputted passwords don't match,\nplease try again.");
+                }else if(!validate.passwordWithinLimit(new String(password.getPassword()))){ //Validate Pass Not Current Pass
+                    errorDialog("Password not within limit,\nplease try again.\n\nMin Character Length: " + validate.minLength + "\nMax Character Length: " + validate.maxLength);
+                }else if(!validate.isValidPasswordString(new String(password.getPassword()))){ //Validate Password Allowable
+                    errorDialog("Password don't comply with rules.\n" + "Invalid inputs, please try again.\n" 
+                                + "Valid Username Characters: Lowercase Letters, Numbers, -, _, .\n"
+                                + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/)");
+                }else if(new SQLite().authenticateUser(uname, new String(password.getPassword()))){ //Same Password as Current User
+                    errorDialog("Password is the same as before,\nplease try again.");
+                }else{
+                    if(new SQLite().changePassword(uname, new String(password.getPassword()))){
+                        JOptionPane.showMessageDialog(this, "Password Changed Success!", "Password Change", JOptionPane.INFORMATION_MESSAGE);
+                        new SQLite().addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "Password Change on Acct.: " + uname));
+                    }else{
+                        new SQLite().addLogs(new Logs("ERROR", this.m.getSessionUserName(), "Error occured while changing password on Acct.: " + uname));
+                        errorDialog("Error changing password!");
+                    }
+                }
             }
         }
     }//GEN-LAST:event_chgpassBtnActionPerformed
 
+    private void errorDialog(String message){
+        JOptionPane.showMessageDialog(this, message, "Password Change", JOptionPane.WARNING_MESSAGE);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton chgpassBtn;
