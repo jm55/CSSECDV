@@ -6,6 +6,7 @@ import Model.Logs;
 import Model.Product;
 import Model.User;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -13,22 +14,17 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Base64;
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
+import java.sql.PreparedStatement;
+import javax.swing.JOptionPane;
 
 public class SQLite {
     
     private HashCrypt hs = new HashCrypt();
     public int DEBUG_MODE = 0;
     String driverURL = "jdbc:sqlite:" + "database.db";
+    
+    public final int minLength = 8;
+    public final int maxLength = 64;
     
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -161,13 +157,18 @@ public class SQLite {
     }
     
     public void addHistory(String username, String name, int stock, String timestamp) {
-        String sql = "INSERT INTO history(username,name,stock,timestamp) VALUES('" + username + "','" + name + "','" + stock + "','" + timestamp + "')";
+        String sql = "INSERT INTO history(username,name,stock,timestamp) VALUES(?,?,?,?)";
         
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, toUTF_16(username));
+            pstmt.setString(2, toUTF_16(name));
+            pstmt.setString(3, stock+"");
+            pstmt.setString(4, timestamp);
+            pstmt.executeUpdate();
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex);
         }
     }
     
@@ -180,59 +181,78 @@ public class SQLite {
     }
     
     public void addLogs(String event, String username, String desc, String timestamp) {
-        String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES('" + event + "','" + username + "','" + desc + "','" + timestamp + "')";
+        String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
         
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, toUTF_16(event));
+            pstmt.setString(2, toUTF_16(username));
+            pstmt.setString(3, desc);
+            pstmt.setString(4, timestamp);
+            pstmt.executeUpdate();
         } catch (Exception ex) {
-            System.out.print(ex);
-        } finally{
-            //printLogs();
+            //System.out.print(ex);
         }
     }
     
     public void addProduct(String name, int stock, double price) {
-        String sql = "INSERT INTO product(name,stock,price) VALUES('" + name + "','" + stock + "','" + price + "')";
+        String sql = "INSERT INTO product(name,stock,price) VALUES(?,?,?)";
         
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+                //PREPARED STATEMENT EXAMPLE
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, toUTF_16(name));
+                pstmt.setString(2, (stock+""));
+                pstmt.setString(3, (price+""));
+                pstmt.executeUpdate();
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex);
         }
     }
     
-    public void addUser(String username, String password) {
-        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + hs.getEncryptedPass(passwordHash(username, password)) + "')";
+    public boolean addUser(String username, String password) {
+        String sql = "INSERT INTO users(username,password) VALUES(?,?)";
         
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
-            
-//      PREPARED STATEMENT EXAMPLE
-//      String sql = "INSERT INTO users(username,password) VALUES(?,?)";
-//      PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//      pstmt.setString(1, username);
-//      pstmt.setString(2, password);
-//      pstmt.executeUpdate();
+        if(!credentialWithinLimit(username, password))
+            return false;
+        
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+                //PREPARED STATEMENT EXAMPLE
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, toUTF_16(username));
+                pstmt.setString(2, hs.getEncryptedPass(passwordHash(toUTF_16(username), toUTF_16(password))));
+                return pstmt.executeUpdate() >= 0;
         } catch (Exception ex) {
-            System.out.print(ex);
+            return false;
         }
     }
     
-    public void addUser(String username, String password, int role) {
-        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + hs.getEncryptedPass(passwordHash(username, password)) + "','" + role + "')";
+    public boolean addUser(String username, String password, int role) {
+        String sql = "INSERT INTO users(username,password,role) VALUES(?,?,?)";
         
-        try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
-            
+        if(!credentialWithinLimit(username, password))
+            return false;
+        
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+                //PREPARED STATEMENT EXAMPLE
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, toUTF_16(username));
+                pstmt.setString(2, hs.getEncryptedPass(passwordHash(toUTF_16(username), toUTF_16(password))));
+                pstmt.setString(3, (role+""));
+                return pstmt.executeUpdate() >= 0;
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex);
+            return false;
         }
     }
     
+    private boolean credentialWithinLimit(String username, String password){
+        if((username.length() <= maxLength && password.length() <= maxLength) && password.length() >= minLength){
+            return true;
+        }else
+            return false;
+    }
     
     public ArrayList<History> getHistory(){
         String sql = "SELECT id, username, name, stock, timestamp FROM history";
@@ -250,7 +270,7 @@ public class SQLite {
                                    rs.getString("timestamp")));
             }
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex);
         }
         return histories;
     }
@@ -282,7 +302,7 @@ public class SQLite {
                                    rs.getString("timestamp")));
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
         }
         return logs;
     }
@@ -322,7 +342,9 @@ public class SQLite {
                                    rs.getInt("role"),
                                    rs.getInt("locked")));
             }
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            
+        }
         return users;
     }
     
@@ -501,7 +523,7 @@ public class SQLite {
     }
     
     private String passwordHash(final String username, final String plaintext){
-        return hs.getSHA384(username + "::" + plaintext);
+        return hs.getSHA384("$%" + username+ "::" + plaintext);
     }
     
     /**
@@ -539,5 +561,9 @@ public class SQLite {
             return setRole(username, 2) && setLocked(username, 0);
         }
         return false;
+    }
+    
+    private String toUTF_16(String input){
+        return new String(input.getBytes(), StandardCharsets.UTF_8);
     }
 }

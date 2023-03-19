@@ -1,7 +1,6 @@
 package View;
 
 import Controller.SQLite;
-//import Model.User;
 import Model.Logs;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
@@ -12,7 +11,9 @@ public class Register extends javax.swing.JPanel {
 
     private final String usernameRegex = "[a-z0-9_\\-.]+";
     private final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
-    private final int minLength = 8;
+    
+    private final int minLength = new SQLite().minLength;
+    private final int maxLength = new SQLite().maxLength;
     
     public Register() {
         initComponents();
@@ -109,7 +110,7 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     
     private void registerAction(SQLite sql){
-        sql.addUser(usernameFld.getText(), getPassword(), 2);
+        sql.addUser(getUsername(), getPassword(), 2);
     }
     
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
@@ -117,18 +118,20 @@ public class Register extends javax.swing.JPanel {
             emptyFields();
         }else if(isFieldInvalid()){
             invalidCharacters();
-        }else if(!getPassword().equals(confpassFld.getText())){
+        }else if(!getPassword().equals(getConfPassword())){
             passwordMismatch();
         }else if(!isValidPassword(getPassword())){
-                invalidPassword();
+            invalidPassword();
+        }else if(inputTooBig()){
+            bigInputs();
         }else{ //All prior conditions are met
             SQLite sql = new SQLite();
-            if (sql.isUserExists(usernameFld.getText())){
+            if (sql.isUserExists(getUsername())){
                 userExists();
                 sql.addLogs(registerLog("New user attempted to register using unavailable username: " + usernameFld.getText()));
             }else{
                 registerAction(sql);
-                sql.addLogs(registerLog("New user registered as " + usernameFld.getText()));
+                sql.addLogs(registerLog("New user registered as " + getUsername()));
                 clearInputs();
                 frame.loginNav();
             }
@@ -136,10 +139,27 @@ public class Register extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_registerBtnActionPerformed
 
+    private boolean inputTooBig(){
+        final int u = getUsername().length();
+        final int p = getPassword().length();
+        final int cp = getConfPassword().length();
+        if(u >= maxLength && p >= maxLength && cp >= maxLength)
+            return true;
+        return false;
+    }
+    
     private void clearInputs(){
         usernameFld.setText("");
         passwordFld.setText("");
         confpassFld.setText("");
+    }
+    
+    private String getUsername(){
+        return usernameFld.getText();
+    }
+    
+    private String getConfPassword(){
+        return new String(confpassFld.getPassword());
     }
     
     /**
@@ -156,7 +176,7 @@ public class Register extends javax.swing.JPanel {
      * @return Logs object from the given parameters
      */
     private Logs registerLog(String desc){
-        return new Logs("REGISTER", "<NEW USER>", desc);
+        return new Logs("REGISTER", "NEW USER", desc);
     }
     
     private void backBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBtnActionPerformed
@@ -193,7 +213,7 @@ public class Register extends javax.swing.JPanel {
             if(password.contains(special.charAt(s) + ""))
                 specialRegex = true;
             
-        return (uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() >= minLength);
+        return (uppercaseRegex && lowercaseRegex && digitRegex && specialRegex) && (password.length() >= minLength && password.length() <= maxLength);
     }
     
     /***
@@ -218,6 +238,13 @@ public class Register extends javax.swing.JPanel {
                 + "Minimum Password Length:" + minLength + "\n"
                 + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/)\n"
                         + "At least 1 uppercase letter, 1 digit, 1 special symbol", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    /**
+     * Shows a popup that the inputs are too big/long to be accepted.
+     */
+    private void bigInputs(){
+        JOptionPane.showMessageDialog(frame, "Inputs are too big in terms of character length, please limit this to: " + maxLength + " characters.", "Invalid Registration", JOptionPane.WARNING_MESSAGE);
     }
     
     /**

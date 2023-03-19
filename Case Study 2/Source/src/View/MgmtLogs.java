@@ -30,7 +30,7 @@ public class MgmtLogs extends javax.swing.JPanel {
 
     public void init(Main m){
         this.m = m;
-        
+    
         if(m.getSessionRole() != 5){
             clearBtn.setVisible(false);
             debugBtn.setVisible(false);

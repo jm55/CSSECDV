@@ -13,7 +13,11 @@ import Model.Product;
 import Model.User;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -39,16 +43,28 @@ public class ManagerHome extends javax.swing.JPanel {
         this.m = m;
         
         mgmtHistory = new MgmtHistory(sqlite);
-        mgmtLogs = new MgmtLogs(sqlite);
+        //mgmtLogs = new MgmtLogs(sqlite);
         mgmtProduct = new MgmtProduct(sqlite);
-        mgmtUser = new MgmtUser(sqlite);
+        //mgmtUser = new MgmtUser(sqlite);
     
+        String welcome_EN = "Welcome Manager!";
+        String welcome_JP = "いらっしゃいませマネジャーさん";
+        
+        if(this.m.getSessionUserName() != null){
+            System.out.println(this.m.getSessionUserName());
+            welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
+            welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【クライエント】さん";
+        }
+        String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "<br><br>" + "Instance Logged in at: " + new Date().toString() + "</html>";
+        
         Content.setLayout(contentView);
-        Content.add(new Home("WELCOME MANAGER!", new java.awt.Color(153,102,255)), "home");
-        Content.add(mgmtUser, "mgmtUser");
+        Content.add(new Home(showable, new java.awt.Color(153,102,255)), "home");
+        //Content.add(mgmtUser, "mgmtUser");
         Content.add(mgmtHistory, "mgmtHistory");
         Content.add(mgmtProduct, "mgmtProduct");
-        Content.add(mgmtLogs, "mgmtLogs");
+        //Content.add(mgmtLogs, "mgmtLogs");
+        
+        showPnl("home");
         
         //UNCOMMENT TO DISABLE BUTTONS
         //historyBtn.setVisible(false);

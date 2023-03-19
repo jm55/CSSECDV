@@ -6,20 +6,27 @@
 package View;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.util.Date;
 
 /**
  *
  * @author G301
  */
-public class Home extends javax.swing.JPanel {
 
+public class Home extends javax.swing.JPanel {
+    
     /**
      * Creates new form Home
      */
     public Home(String name, Color color) {
         initComponents();
-        userLbl.setText(name);
+        userLbl.setFont(new Font("Bitstream Cyberbit", Font.PLAIN, 20));
+        
         setBackground(color);
+        name = name.substring(0, name.lastIndexOf("</html>"));
+        name += "<br><br>Instance logged in at: " + new Date().toString() + "</html>";
+        userLbl.setText(name);
     }
 
     /**

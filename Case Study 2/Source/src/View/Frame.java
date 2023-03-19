@@ -219,7 +219,7 @@ public class Frame extends javax.swing.JFrame {
     
     private void windowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_windowClosing
         if(this.main.hasSession()){
-            int exitChoice = JOptionPane.showConfirmDialog(this, "Do you want to logout to exit?", "Logout to Exit", JOptionPane.YES_NO_OPTION);
+            int exitChoice = JOptionPane.showConfirmDialog(this, "Do you want to logout to exit?    ", "Logout to Exit", JOptionPane.YES_NO_OPTION);
             if(exitChoice == JOptionPane.YES_OPTION) //YES
                 logoutAction();
         }
@@ -268,6 +268,7 @@ public class Frame extends javax.swing.JFrame {
     
     public void mainNav(final int userID){
         System.gc();
+        
         //Create session by userID
         this.main.createSession(userID);
         
@@ -287,18 +288,23 @@ public class Frame extends javax.swing.JFrame {
             case 1: //Locked
                 break;
             case 2: //Client
+                clientHomePnl.init(this.main.sqlite, this.main);
                 contentView.show(Content, "clientHomePnl");
                 break;
             case 3: //Staff
+                staffHomePnl.init(this.main.sqlite, this.main);
                 contentView.show(Content, "staffHomePnl");
                 break;
             case 4: //Manager
+                managerHomePnl.init(this.main.sqlite, this.main);
                 contentView.show(Content, "managerHomePnl");
                 break;
             case 5: //Admin
+                adminHomePnl.init(this.main.sqlite, this.main);
                 contentView.show(Content, "adminHomePnl");
                 break;
             default:
+                this.main = null;
                 loginNav();
                 break;
         }

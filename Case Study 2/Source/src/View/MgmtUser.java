@@ -15,6 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import java.util.Random;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -39,20 +41,29 @@ public class MgmtUser extends javax.swing.JPanel {
     }
     
     public void init(){
-        //      CLEAR TABLE
+        //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
             tableModel.removeRow(0);
         }
         
-    //      LOAD CONTENTS
+        //LOAD CONTENTS
         ArrayList<User> users = this.sqlite.getUsers();
         for(int nCtr = 0; nCtr < users.size(); nCtr++){
             tableModel.addRow(new Object[]{
                 users.get(nCtr).getUsername(), 
-                "<<< Hidden Password >>>".toUpperCase(), 
+                hiddenPassword(), 
                 users.get(nCtr).getRole(), 
                 users.get(nCtr).getLocked()});
         }
+        
+        JOptionPane.showMessageDialog(this, "For user data privacy and security purposes,\nthe passwords shown on the table\nare not representative of the actual stored passwords.", "Notice", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private String hiddenPassword(){
+        String out = "";
+        for(int i = 0; i < new Random().nextInt(8, 64); i++)
+            out += "*";
+        return out;
     }
 
     public void designer(JTextField component, String text){

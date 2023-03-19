@@ -30,6 +30,9 @@ public class Main {
     private String session = null;
     private HashCrypt hs = new HashCrypt();
     
+    private boolean rebuild = true;
+    private boolean debug = true;
+    
     public static void main(String[] args) {
         new Main().init();
     }
@@ -38,9 +41,12 @@ public class Main {
         // Initialize a driver object
         sqlite = new SQLite();
         
-        //buildDB();
-        //checkLogs();
-        //checkUsers();
+        if(rebuild)
+            buildDB();
+        if(debug){
+            checkLogs();
+            checkUsers();
+        }
         
         //Initialize User Interface
         Frame frame = new Frame();
@@ -151,12 +157,11 @@ public class Main {
         sqlite.addProduct("Scanner", 10, 100.0);
 
         // Add sample users (hashed once function is executed)
-        sqlite.addUser("admin", "qwerty1234" , 5);
-        sqlite.addUser("manager", "qwerty1234", 4);
-        sqlite.addUser("staff", "qwerty1234", 3);
-        sqlite.addUser("client1", "qwerty1234", 2);
-        sqlite.addUser("client2", "qwerty1234", 2);
-
+        sqlite.addUser("admin", "Qw3rty_1234" , 5);
+        sqlite.addUser("manager", "Qw3rty_1234", 4);
+        sqlite.addUser("staff", "Qw3rty_1234", 3);
+        sqlite.addUser("client1", "Qw3rty_1234", 2);
+        sqlite.addUser("client2", "Qw3rty_1234", 2);
 
         // Get users
         ArrayList<History> histories = sqlite.getHistory();

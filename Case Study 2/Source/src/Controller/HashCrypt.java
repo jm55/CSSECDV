@@ -7,6 +7,7 @@ package Controller;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +22,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -100,6 +102,11 @@ public class HashCrypt {
         return hexString.toString();
     }
     
+    private IvParameterSpec generateIv() {
+        byte[] iv = "C5SecDV_s11_2023".getBytes();
+        return new IvParameterSpec(iv);
+    } 
+    
     /**
      * Gets the hash of a given plain-text password.
      * @param plaintext
@@ -108,23 +115,23 @@ public class HashCrypt {
     private String encrypt(final String plaintext, final String secretKey, final int keyLength){
         try {
             Cipher cipher;
-            cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey));
+            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), generateIv());
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
         }
         return null;
     }
     
     private String decrypt(final String ciphertext, final String secretKey, final int keyLength){
         try {
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey));
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey), generateIv());
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
+            System.out.println("AES Error: " + ex.getLocalizedMessage());
         }
         return null;
     }
@@ -138,7 +145,7 @@ public class HashCrypt {
         byte[] key;
         try {
             key = privateKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-256");
+            sha = MessageDigest.getInstance("SHA-384");
             key = sha.digest(key);
             key = Arrays.copyOf(key, keyLength);
             return new SecretKeySpec(key, "AES");

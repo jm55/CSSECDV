@@ -118,13 +118,9 @@ public class Login extends javax.swing.JPanel {
                         sql.addLogs(loginLog(usernameFld.getText(), "Failed attempt to login"));
                         invalidLogin();
                         loginAttempt++;
-                        if(loginAttempt > loginAttemptLimit){
-                            if(sql.lockUser(usernameFld.getText())){
+                        if(loginAttempt >= loginAttemptLimit)
+                            if(sql.lockUser(usernameFld.getText()))
                                 sql.addLogs(loginLog(usernameFld.getText(), "Account locked due to excessive login attempts"));
-                                clearInputs();
-                                invalidLogin();
-                            }
-                        }
                     }
                 }
             }else{ 
@@ -141,6 +137,10 @@ public class Login extends javax.swing.JPanel {
         passwordFld.setText("");
     }
     
+    private String getUsername(){
+        return usernameFld.getText();
+    }
+    
     private String getPassword(){
         return new String(passwordFld.getPassword());
     }
@@ -152,9 +152,9 @@ public class Login extends javax.swing.JPanel {
      * @return 
      */
     private boolean fieldIsInvalid(){
-        boolean usernameValid = Pattern.compile(usernameRegex).matcher(usernameFld.getText()).matches();
+        boolean usernameValid = Pattern.compile(usernameRegex).matcher(getUsername()).matches();
         boolean passwordValid = Pattern.compile(passwordRegex).matcher(getPassword()).matches();
-        if (usernameValid && passwordValid)
+        if (usernameValid && passwordValid || (getUsername().length() != 0 && getPassword().length() >= new SQLite().minLength))
             return false;
         return true;
     }
