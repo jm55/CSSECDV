@@ -45,6 +45,8 @@ public class Main {
         //Initialize User Interface
         Frame frame = new Frame();
         frame.init(this);
+        
+        System.gc();
     }
     
     public void resetSession(){

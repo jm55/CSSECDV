@@ -266,7 +266,8 @@ public class Frame extends javax.swing.JFrame {
         this.setVisible(true);
     }
     
-    public void mainNav(final int userID){ 
+    public void mainNav(final int userID){
+        System.gc();
         //Create session by userID
         this.main.createSession(userID);
         
@@ -305,6 +306,7 @@ public class Frame extends javax.swing.JFrame {
     }
     
     public void loginNav(){
+        System.gc();
         resetSideBarButtons();
         if(main.getSessionUserID() != -1){
             main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged out"));
