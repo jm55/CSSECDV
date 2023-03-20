@@ -30,10 +30,15 @@ public class Main {
     private String session = null;
     private HashCrypt hs = new HashCrypt();
     
-    private boolean rebuild = false;
-    private boolean debug = false;
+    private static boolean prod = true;
     
     public static void main(String[] args) {
+        if(args.length > 0){
+            for(String s: args){
+                if(s.toLowerCase().equals("test"))
+                    prod = false;
+            }
+        }
         new Main().init();
     }
     
@@ -41,9 +46,8 @@ public class Main {
         sqlite = new SQLite();
         Rebuilder r = new Rebuilder(0);
         
-        if(rebuild)
+        if(!prod){
             r.buildDB();
-        if(debug){
             r.checkLogs();
             r.checkUsers();
         }
