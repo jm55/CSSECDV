@@ -1,5 +1,6 @@
 package Controller;
 
+import Utilities.Logger;
 import Utilities.Validator;
 import Utilities.HashCrypt;
 import Model.History;
@@ -16,27 +17,37 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.logging.Level;
 import javax.swing.JOptionPane;
 
 public class SQLite {
     
-    private HashCrypt hs = new HashCrypt();
     public int DEBUG_MODE = 0;
-    String driverURL = "jdbc:sqlite:" + "database.db";
+    
+    private HashCrypt hs = new HashCrypt();
+    private String driverURL = "jdbc:sqlite:" + "database.db";
     private Validator validate;
+    private Logger logger;
     
     public SQLite(){
         this.validate = new Validator();
+        this.logger = new Logger(this);
+    }
+    
+    private String getDateTime(){
+        return new Date().toString();
     }
     
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("Database database.db created.");
+                logger.printOnly("DB", "SYSTEM", "Database database.db created.");
             }
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -52,9 +63,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table history in database.db created.");
+            logger.printOnly("DB", "SYSTEM", "Table history in database.db created.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -70,9 +81,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table logs in database.db created.");
+            logger.printOnly("DB", "SYSTEM", "Table logs in database.db created.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
      
@@ -87,9 +98,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table product in database.db created.");
+            logger.printOnly("DB", "SYSTEM", "Table product in database.db created.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
      
@@ -105,9 +116,10 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table users in database.db created.");
+            
+            logger.printOnly("DB", "SYSTEM", "Table users in database.db created.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -117,9 +129,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table history in database.db dropped.");
+            logger.printOnly("DB", "SYSTEM", "Table history in database.db dropped.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -129,9 +141,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table logs in database.db dropped.");
+            logger.printOnly("DB", "SYSTEM", "Table logs in database.db dropped.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -141,9 +153,9 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table product in database.db dropped.");
+            logger.printOnly("DB", "SYSTEM", "Table product in database.db dropped.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
@@ -153,15 +165,15 @@ public class SQLite {
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            System.out.println("Table users in database.db dropped.");
+            logger.printOnly("DB", "SYSTEM", "Table users in database.db dropped.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            logger.printOnly("DB", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     
-    public void addHistory(String username, String name, int stock, String timestamp) {
+    public boolean addHistory(String username, String name, int stock, String timestamp) {
         String sql = "INSERT INTO history(username,name,stock,timestamp) VALUES(?,?,?,?)";
-        
+        int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)){
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -169,9 +181,17 @@ public class SQLite {
             pstmt.setString(2, toUTF_8(name));
             pstmt.setString(3, stock+"");
             pstmt.setString(4, timestamp);
-            pstmt.executeUpdate();
+            result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex);
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        } finally{
+            if(result != 0){
+                logger.log("DB", "SYSTEM", "Add History Success!");
+                return true;
+            }else{
+                logger.log("DB", "SYSTEM", "Add History Failed!");
+                return false;
+            }
         }
     }
     
@@ -179,60 +199,65 @@ public class SQLite {
      * Add logs using Logs object as a parameter.
      * @param l Logs object to be logged.
      */
-    public void addLogs(Logs l){
-        addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
+    public boolean addLogs(Logs l){
+        return addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
     }
     
-    public void addLogs(String event, String username, String desc, String timestamp) {
+    public boolean addLogs(String event, String username, String desc, String timestamp) {
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
-        
+        int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)){
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, toUTF_8(event));
             pstmt.setString(2, toUTF_8(username));
-            pstmt.setString(3, desc);
+            pstmt.setString(3, toUTF_8(desc));
             pstmt.setString(4, timestamp);
-            pstmt.executeUpdate();
+            result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex);
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        } finally{
+            if(result != 0){
+                logger.printOnly("DB", "SYSTEM", "Add Logs Success!");
+                return true;
+            }else{
+                logger.printOnly("DB", "SYSTEM", "Add Logs Failed!");
+                return false;
+            }
         }
     }
     
-    public void addProduct(String name, int stock, double price) {
+    public boolean addProduct(String name, int stock, double price) {
         String sql = "INSERT INTO product(name,stock,price) VALUES(?,?,?)";
-        
+        int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)){
                 //PREPARED STATEMENT EXAMPLE
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, toUTF_8(name));
                 pstmt.setString(2, (stock+""));
                 pstmt.setString(3, (price+""));
-                pstmt.executeUpdate();
+                result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex);
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage() );
+        } finally{
+            if(result != 0){
+                logger.log("DB", "SYSTEM", "Add Product Success!");
+                return true;
+            }else{
+                logger.log("DB", "SYSTEM", "Add Product Failed!");
+                return false;
+            }
         }
     }
     
     public boolean addUser(String username, String password) {
-        String sql = "INSERT INTO users(username,password) VALUES(?,?)";
-        
-        if(!validate.credentialWithinLimit(username, password))
-            return false;
-        
-        try (Connection conn = DriverManager.getConnection(driverURL)){
-                //PREPARED STATEMENT EXAMPLE
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, toUTF_8(username));
-                pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(password)));
-                return pstmt.executeUpdate() >= 0;
-        } catch (Exception ex) {
-            return false;
-        }
+        return addUser(username, password, 1);
     }
     
     public boolean addUser(String username, String password, int role) {
-        String sql = "INSERT INTO users(username,password,role) VALUES(?,?,?)";
+        String sql = "INSERT INTO users(username,password,role,locked) VALUES(?,?,?,?)";
+        
+        int result = 0;
         
         if(!validate.credentialWithinLimit(username, password))
             return false;
@@ -243,10 +268,22 @@ public class SQLite {
                 pstmt.setString(1, toUTF_8(username));
                 pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(password)));
                 pstmt.setString(3, (role+""));
-                return pstmt.executeUpdate() >= 0;
+                if(role == 0 || role == 1){
+                    pstmt.setString(4, 1+"");
+                }else{
+                    pstmt.setString(4, 0+"");
+                }
+                result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex);
-            return false;
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        } finally{
+            if(result != 0){
+                logger.log("DB", "SYSTEM", "Add User Success!");
+                return true;
+            }else{
+                logger.log("DB", "SYSTEM", "Add User Failed!");
+                return false;
+            }
         }
     }
     
@@ -266,7 +303,7 @@ public class SQLite {
                                    rs.getString("timestamp")));
             }
         } catch (Exception ex) {
-            //System.out.print(ex);
+            logger.log("EXCEPTION","SYSTEM", ex.getLocalizedMessage());
         }
         return histories;
     }
@@ -298,7 +335,7 @@ public class SQLite {
                                    rs.getString("timestamp")));
             }
         } catch (Exception ex) {
-            //ex.printStackTrace();
+            //System.out.print(ex.getLocalizedMessage());
         }
         return logs;
     }
@@ -318,7 +355,7 @@ public class SQLite {
                                    rs.getFloat("price")));
             }
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
         }
         return products;
     }
@@ -339,7 +376,7 @@ public class SQLite {
                                    rs.getInt("locked")));
             }
         } catch (Exception ex) {
-            
+            //System.out.print(ex.getLocalizedMessage());
         }
         return users;
     }
@@ -406,7 +443,7 @@ public class SQLite {
             stmt.execute(sql);
             System.out.println("User " + username + " has been deleted.");
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
         }
     }
     
@@ -420,7 +457,7 @@ public class SQLite {
                                    rs.getInt("stock"),
                                    rs.getFloat("price"));
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
         }
         return product;
     }
@@ -451,7 +488,7 @@ public class SQLite {
             Statement stmt = conn.createStatement()){
             return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
             return true;
         }
     }
@@ -476,7 +513,7 @@ public class SQLite {
             Statement stmt = conn.createStatement()){
             return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
             return true;
         }
     }
@@ -496,7 +533,7 @@ public class SQLite {
             Statement stmt = conn.createStatement()){
             return !stmt.execute(sql); //For some reason, false is a success execute and true is not.
         } catch (Exception ex) {
-            System.out.print(ex);
+            //System.out.print(ex.getLocalizedMessage());
             return true;
         }
     }
@@ -535,7 +572,7 @@ public class SQLite {
      */
     public boolean authenticateUser(final String username, final String plaintext){
         if(isUserExists(username)){
-            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.passwordHash(username, plaintext))){
+            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.getPasswordHash(username, plaintext))){
                 return true;
             }else{
                 return false;

@@ -247,13 +247,16 @@ public class MgmtUser extends javax.swing.JPanel {
         if(row >= 0){
             String uname = ""+table.getValueAt(row, 0);
             
+            JPasswordField adminPass = new JPasswordField();
             JPasswordField password = new JPasswordField();
             JPasswordField confpass = new JPasswordField();
+            designer(adminPass, "ADMIN PASSWORD");
             designer(password, "PASSWORD");
             designer(confpass, "CONFIRM PASSWORD");
             
+            
             Object[] message = {
-                "Enter New Password:", password, confpass
+                "Confirm Admin Password: ", adminPass, "Enter New Password:", password, confpass
             };
 
             int result = JOptionPane.showConfirmDialog(null, message, "CHANGE PASSWORD", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
@@ -270,12 +273,16 @@ public class MgmtUser extends javax.swing.JPanel {
                 }else if(new SQLite().authenticateUser(uname, new String(password.getPassword()))){ //Same Password as Current User
                     errorDialog("Password is the same as before,\nplease try again.");
                 }else{
-                    if(new SQLite().changePassword(uname, new String(password.getPassword()))){
-                        JOptionPane.showMessageDialog(this, "Password Changed Success!", "Password Change", JOptionPane.INFORMATION_MESSAGE);
-                        new SQLite().addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "Password Change on Acct.: " + uname));
+                    if(new SQLite().authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
+                        if(new SQLite().changePassword(uname, new String(password.getPassword()))){
+                            JOptionPane.showMessageDialog(this, "Password Changed Success!", "Password Change", JOptionPane.INFORMATION_MESSAGE);
+                            new SQLite().addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "Password Change on Acct.: " + uname));
+                        }else{
+                            new SQLite().addLogs(new Logs("ERROR", this.m.getSessionUserName(), "Error occured while changing password on Acct.: " + uname));
+                            errorDialog("Error changing password!");
+                        }
                     }else{
-                        new SQLite().addLogs(new Logs("ERROR", this.m.getSessionUserName(), "Error occured while changing password on Acct.: " + uname));
-                        errorDialog("Error changing password!");
+                        errorDialog("Incorrect Admin password,\nplease try again.");
                     }
                 }
             }

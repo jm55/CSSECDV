@@ -50,12 +50,12 @@ public class HashCrypt {
         return null;
     }
     
-    public String passwordHash(final String username, final String plaintext){
+    public String getPasswordHash(final String username, final String plaintext){
         return getSHA384("$%" + username+ "::" + plaintext);
     }
     
     public String getEncryptedPass(final String username, final String plaintext){
-        return encrypt(passwordHash(username, plaintext), "C5SecDV_s11_p@5sW0rD",32);
+        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s11_p@5sW0rD",32);
     }
     
     public String getDecryptedPass(final String ciphertext){
@@ -63,11 +63,11 @@ public class HashCrypt {
     }
     
     public String getEncryptedSession(String plainSession){
-        return encrypt(plainSession, "C5SecDV_s11_5eSsi0n", 16);
+        return encrypt(plainSession, "C5SecDV_s11_5eSsi0n", 24);
     }
     
     public String getDecryptedSession(String cipherSession){
-        return decrypt(cipherSession, "C5SecDV_s11_5eSsi0n", 16);
+        return decrypt(cipherSession, "C5SecDV_s11_5eSsi0n", 24);
     }
     
     public String getSessionString(final int id, final String username, final int role){
@@ -75,15 +75,14 @@ public class HashCrypt {
     }
     
     private String buildSessionString(final int id, final String username, final int role){
-        byte[] randomizer = new byte[16];
+        byte[] randomizer = new byte[4];
         new SecureRandom().nextBytes(randomizer);
         
         SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss::yyyy/MM/dd");
         String datetime = new SimpleDateFormat("HH:mm:ss::yyyy/MM/dd").format(new Date());
         datetime = getSHA256(datetime);
-        
-        //Session Pattern: sha256(datetime),id,username,role,randomizer
-        return getSHA256(datetime) + "," + (id+"")+ "," + username + "," + (role+"") + "," + new String(randomizer,StandardCharsets.UTF_16);
+        //randomizer,date,id,uname,role,randomizer
+        return new String(randomizer,StandardCharsets.UTF_8) + "," + datetime + "," + (id+"") + "," + username + "," + (role+"") + "," + new String(randomizer,StandardCharsets.UTF_8);
     }
     
     /**
@@ -107,7 +106,7 @@ public class HashCrypt {
     }
     
     private IvParameterSpec generateIv() {
-        byte[] iv = "C5SecDV_s11_2023".getBytes();
+        byte[] iv = "C5SecDV_s11_2k23".getBytes();
         return new IvParameterSpec(iv);
     } 
     
