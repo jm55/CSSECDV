@@ -5,7 +5,6 @@ import Controller.SQLite;
 import Model.Logs;
 
 import javax.swing.JOptionPane;
-import java.util.regex.Pattern;
 
 public class Login extends javax.swing.JPanel {
 

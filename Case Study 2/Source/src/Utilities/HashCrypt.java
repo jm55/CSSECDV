@@ -16,8 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -30,12 +28,18 @@ import javax.crypto.spec.SecretKeySpec;
  * @author ejose
  */
 public class HashCrypt {
+    private static IvParameterSpec iv = null;
+    
+    public HashCrypt(){
+        this.iv = generateIv();
+    }   
+    
     public String getSHA256(String input){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             return toHexString(md.digest(input.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(HashCrypt.class.getName()).log(Level.SEVERE, null, ex);
+            
         }
         return null;
     }
@@ -45,29 +49,29 @@ public class HashCrypt {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
             return toHexString(md.digest(input.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(HashCrypt.class.getName()).log(Level.SEVERE, null, ex);
+            
         }
         return null;
     }
     
     public String getPasswordHash(final String username, final String plaintext){
-        return getSHA384("$%" + username+ "::" + plaintext);
+        return getSHA384("$/" + username+ "::" + plaintext);
     }
     
     public String getEncryptedPass(final String username, final String plaintext){
-        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s11_p@5sW0rD",32);
+        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s1L_p@5sW0rD",32);
     }
     
     public String getDecryptedPass(final String ciphertext){
-        return decrypt(ciphertext, "C5SecDV_s11_p@5sW0rD", 32);
+        return decrypt(ciphertext, "C5SecDV_s1L_p@5sW0rD", 32);
     }
     
     public String getEncryptedSession(String plainSession){
-        return encrypt(plainSession, "C5SecDV_s11_5eSsi0n", 24);
+        return encrypt(plainSession, "C5SecDV_s1L_5eSsi0n", 24);
     }
     
     public String getDecryptedSession(String cipherSession){
-        return decrypt(cipherSession, "C5SecDV_s11_5eSsi0n", 24);
+        return decrypt(cipherSession, "C5SecDV_s1L_5eSsi0n", 24);
     }
     
     public String getSessionString(final int id, final String username, final int role){
@@ -106,9 +110,10 @@ public class HashCrypt {
     }
     
     private IvParameterSpec generateIv() {
-        byte[] iv = "C5SecDV_s11_2k23".getBytes();
-        return new IvParameterSpec(iv);
-    } 
+        if(this.iv != null)
+            return this.iv;
+        return new IvParameterSpec("C5SecDV_s1L_2k23".getBytes());
+    }
     
     /**
      * Gets the hash of a given plain-text password.

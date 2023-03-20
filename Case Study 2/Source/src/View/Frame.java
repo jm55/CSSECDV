@@ -1,11 +1,8 @@
 package View;
 
 import Controller.Main;
-import Controller.SQLite;
 import Model.Logs;
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Dimension;
 import javax.swing.WindowConstants;
 import javax.swing.JOptionPane;
 

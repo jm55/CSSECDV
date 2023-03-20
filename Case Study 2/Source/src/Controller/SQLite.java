@@ -7,9 +7,7 @@ import Model.History;
 import Model.Logs;
 import Model.Product;
 import Model.User;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -17,10 +15,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Date;
-import java.util.logging.Level;
-import javax.swing.JOptionPane;
 
 public class SQLite {
     

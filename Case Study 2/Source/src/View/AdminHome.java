@@ -7,17 +7,10 @@ package View;
 //[255,102,51]
 import Controller.Main;
 import Controller.SQLite;
-import Model.History;
 import Model.Logs;
-import Model.Product;
 import Model.User;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.table.DefaultTableModel;
 
 /**
  *

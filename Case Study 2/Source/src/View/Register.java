@@ -3,7 +3,6 @@ package View;
 import Utilities.Validator;
 import Controller.SQLite;
 import Model.Logs;
-import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
 public class Register extends javax.swing.JPanel {
