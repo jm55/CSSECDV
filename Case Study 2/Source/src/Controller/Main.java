@@ -30,7 +30,7 @@ public class Main {
     private String session = null;
     private HashCrypt hs = new HashCrypt();
     
-    private boolean rebuild = true;
+    private boolean rebuild = false;
     private boolean debug = false;
     
     public static void main(String[] args) {

@@ -120,7 +120,7 @@ public class Register extends javax.swing.JPanel {
             passwordMismatch();
         }else if(!validate.isValidPasswordString(getPassword())){
             invalidPassword();
-        }else if(validate.credentialWithinLimit(getUsername(), getPassword(), getConfPassword())){
+        }else if(!validate.credentialWithinLimit(getUsername(), getPassword(), getConfPassword())){
             bigInputs();
         }else{ //All prior conditions are met
             SQLite sql = new SQLite();

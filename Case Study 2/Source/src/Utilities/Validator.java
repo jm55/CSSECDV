@@ -91,8 +91,8 @@ public class Validator {
         boolean passwordValid = Pattern.compile(passwordRegex).matcher(password).matches();
         boolean confPasswordValid = Pattern.compile(passwordRegex).matcher(confPassword).matches();
         if (usernameValid && passwordValid && confPasswordValid)
-            return false;
-        return true;
+            return true;
+        return false;
     }
     
     public boolean isLoginValid(String username, String password){

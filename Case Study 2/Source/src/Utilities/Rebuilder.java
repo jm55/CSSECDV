@@ -90,9 +90,9 @@ public class Rebuilder {
         sqlite.addUser("client1", "Qw3rty_1234", 2);
         sqlite.addUser("client2", "P@ssw0rd_1234", 2);
 
-        System.out.println("");
-
         if(this.showContent > 0){
+            System.out.println("");
+            
             System.out.println("<<< HISTORY >>>");
             ArrayList<History> histories = sqlite.getHistory();
             for(int nCtr = 0; nCtr < histories.size(); nCtr++){
@@ -137,7 +137,5 @@ public class Rebuilder {
             }
             System.out.println("");
         }
-        
-        System.out.println("");
     }
 }
