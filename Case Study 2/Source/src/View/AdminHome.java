@@ -43,7 +43,7 @@ public class AdminHome extends javax.swing.JPanel {
         String welcome_JP = "いらっしゃいませアドミンさん";
         
         if(this.m.getSessionUserName() != null){
-            welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
+            welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Admin)!";
             welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【アドミン】さん";
         }
         String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "</html>";

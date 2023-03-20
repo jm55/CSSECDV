@@ -43,7 +43,7 @@ public class StaffHome extends javax.swing.JPanel {
         
         if(this.m.getSessionUserName() != null){
             System.out.println(this.m.getSessionUserName());
-            welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Client)!";
+            welcome_EN = "Welcome " + this.m.getSessionUserName() + " (Staff)!";
             welcome_JP = "いらっしゃいませ" + this.m.getSessionUserName() + "【スタフ】さん";
         }
         String showable = "<html>" + welcome_EN + "<br><br>" + welcome_JP + "</html>";

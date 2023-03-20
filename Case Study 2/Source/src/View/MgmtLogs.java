@@ -29,23 +29,8 @@ public class MgmtLogs extends javax.swing.JPanel {
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
     }
-
-    public void init(Main m){
-        this.m = m;
     
-        validate.validateSession(null, 5, this.m.getSessionRole());
-        
-        if(m.getSessionRole() != 5){
-            clearBtn.setVisible(false);
-            debugBtn.setVisible(false);
-            this.m = null;
-            return;
-        }else{
-            //UNCOMMENT TO DISABLE BUTTONS
-            clearBtn.setVisible(true);
-            debugBtn.setVisible(true);
-        }
-        
+    private void reloadTable(){
         //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
             tableModel.removeRow(0);
@@ -59,6 +44,25 @@ public class MgmtLogs extends javax.swing.JPanel {
                 logs.get(nCtr).getUsername(), 
                 logs.get(nCtr).getDesc(), 
                 logs.get(nCtr).getTimestamp()});
+        }
+    }
+    
+    public void init(Main m){
+        this.m = m;
+    
+        reloadTable();
+        
+        validate.validateSession(null, 5, this.m.getSessionRole());
+        
+        if(m.getSessionRole() != 5){
+            clearBtn.setVisible(false);
+            debugBtn.setVisible(false);
+            this.m = null;
+            return;
+        }else{
+            //UNCOMMENT TO DISABLE BUTTONS
+            clearBtn.setVisible(true);
+            debugBtn.setVisible(true);
         }
     }
     /**
@@ -150,7 +154,8 @@ public class MgmtLogs extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
-        
+        //DELETE CONTENTS OF LOGS TABLE ON DB
+        reloadTable();
     }//GEN-LAST:event_clearBtnActionPerformed
 
     private void debugBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugBtnActionPerformed
