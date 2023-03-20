@@ -29,6 +29,10 @@ public class Login extends javax.swing.JPanel {
         passwordFld = new javax.swing.JPasswordField();
         registerBtn = new javax.swing.JButton();
         loginBtn = new javax.swing.JButton();
+        aboutBtn = new javax.swing.JButton();
+
+        setMaximumSize(new java.awt.Dimension(16, 16));
+        setPreferredSize(new java.awt.Dimension(840, 500));
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 48)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -63,12 +67,24 @@ public class Login extends javax.swing.JPanel {
             }
         });
 
+        aboutBtn.setText("?");
+        aboutBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        aboutBtn.setMargin(new java.awt.Insets(3, 3, 3, 3));
+        aboutBtn.setMaximumSize(new java.awt.Dimension(24, 24));
+        aboutBtn.setMinimumSize(new java.awt.Dimension(24, 24));
+        aboutBtn.setPreferredSize(new java.awt.Dimension(24, 24));
+        aboutBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(200, Short.MAX_VALUE)
+                .addContainerGap(224, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(passwordFld)
                     .addGroup(layout.createSequentialGroup()
@@ -76,8 +92,12 @@ public class Login extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(usernameFld)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(200, Short.MAX_VALUE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE))
+                .addContainerGap(224, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(aboutBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -92,7 +112,9 @@ public class Login extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(registerBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(108, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 80, Short.MAX_VALUE)
+                .addComponent(aboutBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
@@ -157,6 +179,10 @@ public class Login extends javax.swing.JPanel {
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
         frame.registerNav();
     }//GEN-LAST:event_registerBtnActionPerformed
+
+    private void aboutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutBtnActionPerformed
+        JOptionPane.showMessageDialog(this,"<html>©2023 Escalona, J.M./エスカローナミゲル<br>CSSECDV S11 - Case Study</html>", "About", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_aboutBtnActionPerformed
     
     /**
      * Ambiguous message if username/password don't match on DB.
@@ -177,6 +203,7 @@ public class Login extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton aboutBtn;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JButton loginBtn;
     private javax.swing.JPasswordField passwordFld;
