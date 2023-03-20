@@ -9,6 +9,7 @@ import Controller.Main;
 import Controller.SQLite;
 import Model.History;
 import Model.Product;
+import Utilities.Validator;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -22,11 +23,13 @@ public class MgmtHistory extends javax.swing.JPanel {
 
     public SQLite sqlite;
     public DefaultTableModel tableModel;
+    private Validator validate;
     
     private Main m = null;
     
     public MgmtHistory(SQLite sqlite) {
         initComponents();
+        this.validate = new Validator();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
@@ -42,6 +45,8 @@ public class MgmtHistory extends javax.swing.JPanel {
     public void init(Main m){
         this.m = m;
         
+        int[] allowables = {2,4};
+        validate.validateSession(null, allowables, this.m.getSessionRole());
         
         if(this.m.getSessionRole() != 2 && this.m.getSessionRole() != 4){
             this.m = null;

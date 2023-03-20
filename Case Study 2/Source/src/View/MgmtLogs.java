@@ -8,6 +8,7 @@ package View;
 import Controller.Main;
 import Controller.SQLite;
 import Model.Logs;
+import Utilities.Validator;
 import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel;
 
@@ -20,9 +21,10 @@ public class MgmtLogs extends javax.swing.JPanel {
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     private Main m = null;
-    
+    private Validator validate;
     public MgmtLogs(SQLite sqlite) {
         initComponents();
+        this.validate = new Validator();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
@@ -31,6 +33,8 @@ public class MgmtLogs extends javax.swing.JPanel {
     public void init(Main m){
         this.m = m;
     
+        validate.validateSession(null, 5, this.m.getSessionRole());
+        
         if(m.getSessionRole() != 5){
             clearBtn.setVisible(false);
             debugBtn.setVisible(false);

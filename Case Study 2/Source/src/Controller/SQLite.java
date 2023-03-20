@@ -566,13 +566,14 @@ public class SQLite {
      * @return True if user credentials are authenticated such that it matches the DB's contents, false if otherwise.
      */
     public boolean authenticateUser(final String username, final String plaintext){
-        if(isUserExists(username)){
-            if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.getPasswordHash(username, plaintext))){
+        if(isUserExists(username) && validate.isValidUsernameString(username)){
+            if(!validate.isValidPasswordString(plaintext)){
+                return false;
+            }else if (hs.getDecryptedPass(getUser(username).getPassword()).equals(hs.getPasswordHash(username, plaintext))){
                 return true;
             }else{
                 return false;
             }
-                
         }else{
             return false;
         }

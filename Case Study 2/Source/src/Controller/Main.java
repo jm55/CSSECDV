@@ -32,7 +32,6 @@ public class Main {
     public void init(){
         sqlite = new SQLite();
         
-        
         if(rebuild){
             Rebuilder r = new Rebuilder();
             r.buildDB();

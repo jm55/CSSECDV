@@ -32,9 +32,9 @@ public class MgmtUser extends javax.swing.JPanel {
     private Main m;
     
     public MgmtUser(SQLite sqlite) {
+        initComponents();
         this.hs = new HashCrypt();
         this.validate = new Validator();
-        initComponents();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
@@ -48,6 +48,8 @@ public class MgmtUser extends javax.swing.JPanel {
     
     public void init(Main m){
         this.m = m;
+        
+        validate.validateSession(null, 5, this.m.getSessionRole());
         
         //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){

@@ -5,6 +5,8 @@
 package Utilities;
 
 import java.util.regex.Pattern;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -96,5 +98,24 @@ public class Validator {
     
     public boolean isLoginValid(String username, String password){
         return isValidUsernameString(username) && isValidPasswordString(password);
+    }
+    
+    private boolean checkSession(int[] allowableRole, int role){
+        for(int a: allowableRole)
+            if(role == a)
+                return true;
+        return false;
+    }
+    
+    public void validateSession(JFrame frame, int[] allowableRole, int role){
+        if(!checkSession(allowableRole, role)){
+            JOptionPane.showMessageDialog(frame, "Invalid User Account Role Detected!\nProgram terminating for DB safety.", "Error Occured", JOptionPane.ERROR);
+            System.exit(1);
+        }
+    }
+    
+    public void validateSession(JFrame frame, int allowableRole, int role){
+        int[] allowables = {allowableRole};
+        validateSession(frame, allowables, role);
     }
 }

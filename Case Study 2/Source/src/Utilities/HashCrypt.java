@@ -28,11 +28,8 @@ import javax.crypto.spec.SecretKeySpec;
  * @author ejose
  */
 public class HashCrypt {
-    private static IvParameterSpec iv = null;
-    
-    public HashCrypt(){
-        this.iv = generateIv();
-    }   
+    private final IvParameterSpec acctIV = generateIv("?Gd.Q~M-4:cS?YcT");
+    private final IvParameterSpec sessionIV = generateIv("KXby'qX58W%d*@$p");
     
     public String getSHA256(String input){
         try {
@@ -59,19 +56,19 @@ public class HashCrypt {
     }
     
     public String getEncryptedPass(final String username, final String plaintext){
-        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s1L_p@5sW0rD",32);
+        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s1L_p@5sW0rD", 32, acctIV);
     }
     
     public String getDecryptedPass(final String ciphertext){
-        return decrypt(ciphertext, "C5SecDV_s1L_p@5sW0rD", 32);
+        return decrypt(ciphertext, "C5SecDV_s1L_p@5sW0rD", 32, acctIV);
     }
     
     public String getEncryptedSession(String plainSession){
-        return encrypt(plainSession, "C5SecDV_s1L_5eSsi0n", 24);
+        return encrypt(plainSession, "C5SecDV_s1L_5eSsi0n", 24, sessionIV);
     }
     
     public String getDecryptedSession(String cipherSession){
-        return decrypt(cipherSession, "C5SecDV_s1L_5eSsi0n", 24);
+        return decrypt(cipherSession, "C5SecDV_s1L_5eSsi0n", 24, sessionIV);
     }
     
     public String getSessionString(final int id, final String username, final int role){
@@ -109,10 +106,8 @@ public class HashCrypt {
         return hexString.toString();
     }
     
-    private IvParameterSpec generateIv() {
-        if(this.iv != null)
-            return this.iv;
-        return new IvParameterSpec("C5SecDV_s1L_2k23".getBytes());
+    private IvParameterSpec generateIv(String ivValue) {
+        return new IvParameterSpec(ivValue.getBytes());
     }
     
     /**
@@ -120,11 +115,11 @@ public class HashCrypt {
      * @param plaintext
      * @return 
      */
-    private String encrypt(final String plaintext, final String secretKey, final int keyLength){
+    private String encrypt(final String plaintext, final String secretKey, final int keyLength, IvParameterSpec iv){
         try {
             Cipher cipher;
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), generateIv());
+            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), iv);
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
             System.out.println("AES Error: " + ex.getLocalizedMessage());
@@ -132,10 +127,10 @@ public class HashCrypt {
         return null;
     }
     
-    private String decrypt(final String ciphertext, final String secretKey, final int keyLength){
+    private String decrypt(final String ciphertext, final String secretKey, final int keyLength, IvParameterSpec iv){
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey), generateIv());
+            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey), iv);
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {

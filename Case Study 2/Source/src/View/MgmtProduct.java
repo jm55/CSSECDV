@@ -8,6 +8,7 @@ package View;
 import Controller.Main;
 import Controller.SQLite;
 import Model.Product;
+import Utilities.Validator;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -22,9 +23,11 @@ public class MgmtProduct extends javax.swing.JPanel {
     private Main m = null;
     public SQLite sqlite;
     public DefaultTableModel tableModel;
+    private Validator validate;
     
     public MgmtProduct(SQLite sqlite) {
         initComponents();
+        this.validate = new Validator();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
@@ -38,6 +41,9 @@ public class MgmtProduct extends javax.swing.JPanel {
 
     public void init(Main m){
         this.m = m;
+        
+        int[] allowables = {2,3};
+        validate.validateSession(null, allowables, this.m.getSessionRole());
         
         if(this.m.getSessionRole() == 2){ //Client
             //UNCOMMENT TO DISABLE BUTTONS
