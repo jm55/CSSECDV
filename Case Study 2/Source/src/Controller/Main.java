@@ -3,32 +3,39 @@ package Controller;
 import Utilities.HashCrypt;
 import Utilities.Rebuilder;
 import View.Frame;
+import java.util.Date;
 
 public class Main {
     public SQLite sqlite;
     private String session = null;
     private HashCrypt hs = new HashCrypt();
     
-    private static boolean prod = true;
+    private static boolean rebuild = false;
     
     public static void main(String[] args) {
+        System.out.println("Program Started at: " + new Date().toString());
         if(args.length > 0){
             for(String s: args){
-                if(s.toLowerCase().equals("test"))
-                    prod = false;
+                if(s.toLowerCase().equals("rebuild"))
+                    rebuild = true;
             }
         }
         new Main().init();
     }
     
+    public void close(){
+        System.out.println("Program Close called at: " + new Date().toString());
+        System.gc();
+        System.exit(0);
+    }
+    
     public void init(){
         sqlite = new SQLite();
-        Rebuilder r = new Rebuilder(0);
         
-        if(!prod){
+        
+        if(rebuild){
+            Rebuilder r = new Rebuilder();
             r.buildDB();
-            r.checkLogs();
-            r.checkUsers();
         }
         
         //Initialize User Interface

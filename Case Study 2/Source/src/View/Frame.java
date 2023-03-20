@@ -217,8 +217,12 @@ public class Frame extends javax.swing.JFrame {
     private void windowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_windowClosing
         if(this.main.hasSession()){
             int exitChoice = JOptionPane.showConfirmDialog(this, "Do you want to logout to exit?    ", "Logout to Exit", JOptionPane.YES_NO_OPTION);
-            if(exitChoice == JOptionPane.YES_OPTION) //YES
+            if(exitChoice == JOptionPane.YES_OPTION){ //YES
                 logoutAction();
+                this.main.close();
+            }
+        }else{
+            this.main.close();
         }
     }//GEN-LAST:event_windowClosing
 

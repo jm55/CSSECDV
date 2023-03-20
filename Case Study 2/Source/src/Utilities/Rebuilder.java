@@ -19,18 +19,19 @@ import java.util.Date;
  */
 public class Rebuilder {
     private SQLite sqlite;
-    private int showContent = 0;
     
-    public Rebuilder(int showContent){
+    public Rebuilder(){
         sqlite = new SQLite();
-        this.showContent = showContent;
     }
     
     public void checkUsers(){
         ArrayList<User> users = sqlite.getUsers();
         for(int i = 0; i < users.size(); i++){
             User u = users.get(i);
-            System.out.println(u.getId() + ": " + u.getUsername() + " " + u.getRole() + " " + u.getLocked());
+            System.out.println("User " + u.getId() + ": ");
+            System.out.println("    Username: " + u.getUsername());
+            System.out.println("    Role: " + u.getRole());
+            System.out.println("    Locked: " + u.getLocked());
         }
         users = null;
     }
@@ -89,53 +90,50 @@ public class Rebuilder {
         sqlite.addUser("staff", "Qw3rty_1234", 3);
         sqlite.addUser("client1", "Qw3rty_1234", 2);
         sqlite.addUser("client2", "P@ssw0rd_1234", 2);
-
-        if(this.showContent > 0){
-            System.out.println("");
-            
-            System.out.println("<<< HISTORY >>>");
-            ArrayList<History> histories = sqlite.getHistory();
-            for(int nCtr = 0; nCtr < histories.size(); nCtr++){
-                System.out.println("History " + histories.get(nCtr).getId());
-                System.out.println("    Username: " + histories.get(nCtr).getUsername());
-                System.out.println("    Name: " + histories.get(nCtr).getName());
-                System.out.println("    Stock: " + histories.get(nCtr).getStock());
-                System.out.println("    Timestamp: " + histories.get(nCtr).getTimestamp());
-            }
-            System.out.println("");
-            
-            System.out.println("<<< LOGS >>>");
-            ArrayList<Logs> logs = sqlite.getLogs();
-            for(int nCtr = 0; nCtr < logs.size(); nCtr++){
-                System.out.println("Logs " + logs.get(nCtr).getId());
-                System.out.println("    Username: " + logs.get(nCtr).getEvent());
-                System.out.println("    Password: " + logs.get(nCtr).getUsername());
-                System.out.println("    Role: " + logs.get(nCtr).getDesc());
-                System.out.println("    Timestamp: " + logs.get(nCtr).getTimestamp());
-            }
-            System.out.println("");
-            
-            System.out.println("<<< PRODUCTS >>>");
-            ArrayList<Product> products = sqlite.getProduct();
-            for(int nCtr = 0; nCtr < products.size(); nCtr++){
-                System.out.println("Product " + products.get(nCtr).getId());
-                System.out.println("    Name: " + products.get(nCtr).getName());
-                System.out.println("    Stock: " + products.get(nCtr).getStock());
-                System.out.println("    Price: " + products.get(nCtr).getPrice());
-            }
-            System.out.println("");
-            
-            System.out.println("<<< USERS >>>");
-            ArrayList<User> users = sqlite.getUsers();
-            for(int nCtr = 0; nCtr < users.size(); nCtr++){
-                System.out.println("User " + users.get(nCtr).getId());
-                System.out.println("    Username: " + users.get(nCtr).getUsername());
-                int passLength = users.get(nCtr).getPassword().length();
-                System.out.println("    Password (E2E 8 Chars Only): " + users.get(nCtr).getPassword().substring(0,8) + "..." + users.get(nCtr).getPassword().substring(passLength-8,passLength));
-                System.out.println("    Role: " + users.get(nCtr).getRole());
-                System.out.println("    Locked: " + users.get(nCtr).getLocked());
-            }
-            System.out.println("");
+        
+        System.out.println("");
+        System.out.println("<<< HISTORY >>>");
+        ArrayList<History> histories = sqlite.getHistory();
+        for(int nCtr = 0; nCtr < histories.size(); nCtr++){
+            System.out.println("History " + histories.get(nCtr).getId());
+            System.out.println("    Username: " + histories.get(nCtr).getUsername());
+            System.out.println("    Name: " + histories.get(nCtr).getName());
+            System.out.println("    Stock: " + histories.get(nCtr).getStock());
+            System.out.println("    Timestamp: " + histories.get(nCtr).getTimestamp());
         }
+        System.out.println("");
+
+        System.out.println("<<< LOGS >>>");
+        ArrayList<Logs> logs = sqlite.getLogs();
+        for(int nCtr = 0; nCtr < logs.size(); nCtr++){
+            System.out.println("Logs " + logs.get(nCtr).getId());
+            System.out.println("    Username: " + logs.get(nCtr).getEvent());
+            System.out.println("    Password: " + logs.get(nCtr).getUsername());
+            System.out.println("    Role: " + logs.get(nCtr).getDesc());
+            System.out.println("    Timestamp: " + logs.get(nCtr).getTimestamp());
+        }
+        System.out.println("");
+
+        System.out.println("<<< PRODUCTS >>>");
+        ArrayList<Product> products = sqlite.getProduct();
+        for(int nCtr = 0; nCtr < products.size(); nCtr++){
+            System.out.println("Product " + products.get(nCtr).getId());
+            System.out.println("    Name: " + products.get(nCtr).getName());
+            System.out.println("    Stock: " + products.get(nCtr).getStock());
+            System.out.println("    Price: " + products.get(nCtr).getPrice());
+        }
+        System.out.println("");
+
+        System.out.println("<<< USERS >>>");
+        ArrayList<User> users = sqlite.getUsers();
+        for(int nCtr = 0; nCtr < users.size(); nCtr++){
+            System.out.println("User " + users.get(nCtr).getId());
+            System.out.println("    Username: " + users.get(nCtr).getUsername());
+            int passLength = users.get(nCtr).getPassword().length();
+            System.out.println("    Password (E2E 8 Chars Only): " + users.get(nCtr).getPassword().substring(0,8) + "..." + users.get(nCtr).getPassword().substring(passLength-8,passLength));
+            System.out.println("    Role: " + users.get(nCtr).getRole());
+            System.out.println("    Locked: " + users.get(nCtr).getLocked());
+        }
+        System.out.println("");
     }
 }
