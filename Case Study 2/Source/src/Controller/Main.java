@@ -33,7 +33,7 @@ public class Main {
         sqlite = new SQLite();
         
         if(rebuild){
-            Rebuilder r = new Rebuilder();
+            Rebuilder r = new Rebuilder(this.sqlite);
             r.buildDB();
         }
         

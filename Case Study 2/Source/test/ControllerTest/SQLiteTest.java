@@ -15,7 +15,9 @@ public class SQLiteTest {
     private static SQLite sql;
     public static void main(String[] args){
         sql = new SQLite();
-        int laps = 20;
+        sql.run();
+        
+        int laps = 1;
         
         long dbRecreateTime = createdropTest(laps);
         

@@ -20,8 +20,8 @@ import java.util.Date;
 public class Rebuilder {
     private SQLite sqlite;
     
-    public Rebuilder(){
-        sqlite = new SQLite();
+    public Rebuilder(SQLite sqlite){
+        this.sqlite = sqlite;
     }
     
     public void checkUsers(){

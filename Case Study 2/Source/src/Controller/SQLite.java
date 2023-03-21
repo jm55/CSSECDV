@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.sql.PreparedStatement;
 import java.util.Date;
 
-public class SQLite {
+public class SQLite implements Runnable{
 
     public int DEBUG_MODE = 0;
 
@@ -27,6 +27,7 @@ public class SQLite {
     private Logger logger;
 
     public SQLite() {
+        run();
         this.validate = new Validator();
         this.logger = new Logger(this);
     }
@@ -633,5 +634,10 @@ public class SQLite {
 
     private String toUTF_8(String input) {
         return new String(input.getBytes(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public void run() {
+        
     }
 }
