@@ -33,8 +33,6 @@ public class HashCrypt {
     private final IvParameterSpec acctIV = generateIv(passwordKey.substring(0,16));
     private final IvParameterSpec sessionIV = generateIv(passwordKey.substring(0,16));
     
-    private final Logger logger = new Logger(new SQLite());
-    
     /**
      * Get SHA256 of a given String
      * @param input String to be hashed
@@ -163,7 +161,7 @@ public class HashCrypt {
             cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), iv);
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
-            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            new Logger(new SQLite()).log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }
@@ -175,7 +173,7 @@ public class HashCrypt {
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
-            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            new Logger(new SQLite()).log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }
@@ -194,7 +192,7 @@ public class HashCrypt {
             key = Arrays.copyOf(key, keyLength);
             return new SecretKeySpec(key, "AES");
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            new Logger(new SQLite()).log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }

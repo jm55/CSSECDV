@@ -15,6 +15,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class SQLite implements Runnable{
 
@@ -165,7 +168,11 @@ public class SQLite implements Runnable{
         }
     }
 
-    public boolean addHistory(String username, String name, int stock, String timestamp) {
+    public boolean addHistory(final String username, final String name, final int stock){
+        return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
+    }
+    
+    public boolean addHistory(final String username, final String name, final int stock, final String timestamp) {
         if(!isUserExists(toUTF_8(username)))
             return false;
         
@@ -177,7 +184,7 @@ public class SQLite implements Runnable{
             pstmt.setString(1, toUTF_8(username));
             pstmt.setString(2, toUTF_8(name));
             pstmt.setString(3, stock + "");
-            pstmt.setString(4, timestamp);
+            pstmt.setString(4, toUTF_8(timestamp));
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
@@ -357,7 +364,6 @@ public class SQLite implements Runnable{
         
         if(this.DEBUG_MODE == 1)
             sql = "SELECT id, event, username, desc, timestamp FROM logs;";
-        System.out.println(sql);
         ArrayList <Logs> logs = new ArrayList <Logs> ();
         try (Connection conn = DriverManager.getConnection(driverURL)){
             Statement stmt = conn.createStatement();
@@ -473,8 +479,40 @@ public class SQLite implements Runnable{
                 rs.getFloat("price"));
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        } finally{
+            return product;    
         }
-        return product;
+    }
+    
+    public boolean buyProduct(final String itemname, final int quantity){
+        return purchaseProduct(itemname, quantity);
+    }
+    
+    private boolean purchaseProduct(final String itemname, final int quantity){
+        Product copy = getProduct(itemname);
+        if(copy == null || quantity <= 0)
+            return false;
+        int result = 0;
+        String sql = "UPDATE product SET stock=(?) WHERE name=(?);";
+        try (Connection conn = DriverManager.getConnection(driverURL)) {
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, (copy.getStock()-quantity+""));
+            pstmt.setString(2, toUTF_8(itemname));
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return true;
+        } finally{
+            if (result != 0) {
+                logger.log("DB", "SYSTEM", "Purchase Product Success!");
+                addLogs(new Logs("PRODUCT", "TRANSACTIONS", "Item: " + itemname + " Stock Change: " + copy.getStock() + "->" + (copy.getStock()-quantity)));
+                return true;
+            } else {
+                logger.log("DB", "SYSTEM", "Purchase Product Failed!");
+                return false;
+            }
+        }
     }
 
     /**

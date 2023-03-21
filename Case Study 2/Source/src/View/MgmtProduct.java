@@ -5,9 +5,12 @@
  */
 package View;
 
+import Utilities.Logger;
 import Controller.Main;
 import Controller.SQLite;
+import Model.Logs;
 import Model.Product;
+import Utilities.Dialogs;
 import Utilities.Validator;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
@@ -24,11 +27,13 @@ public class MgmtProduct extends javax.swing.JPanel {
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     private Validator validate;
+    private Logger logger;
     
     public MgmtProduct(SQLite sqlite) {
         initComponents();
         this.validate = new Validator();
         this.sqlite = sqlite;
+        logger = new Logger(this.sqlite);
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
 
@@ -37,6 +42,24 @@ public class MgmtProduct extends javax.swing.JPanel {
 //        addBtn.setVisible(false);
 //        editBtn.setVisible(false);
 //        deleteBtn.setVisible(false);
+    }
+    
+    private void reloadTable(){
+        //CLEAR TABLE
+        for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
+            tableModel.removeRow(0);
+        }
+        
+        //LOAD CONTENTS
+        ArrayList<Product> products = sqlite.getProduct();
+        for(int nCtr = 0; nCtr < products.size(); nCtr++){
+            if(products.get(nCtr).getStock() > 0 || this.m.getSessionRole() != 2){ //Non Empty
+                tableModel.addRow(new Object[]{
+                    products.get(nCtr).getName(), 
+                    products.get(nCtr).getStock(), 
+                    products.get(nCtr).getPrice()});
+            }
+        }
     }
 
     public void init(Main m){
@@ -61,19 +84,7 @@ public class MgmtProduct extends javax.swing.JPanel {
             return;
         }
         
-        //CLEAR TABLE
-        for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
-            tableModel.removeRow(0);
-        }
-        
-        //LOAD CONTENTS
-        ArrayList<Product> products = sqlite.getProduct();
-        for(int nCtr = 0; nCtr < products.size(); nCtr++){
-            tableModel.addRow(new Object[]{
-                products.get(nCtr).getName(), 
-                products.get(nCtr).getStock(), 
-                products.get(nCtr).getPrice()});
-        }
+        reloadTable();
     }
     
     public void designer(JTextField component, String text){
@@ -202,17 +213,41 @@ public class MgmtProduct extends javax.swing.JPanel {
         if(table.getSelectedRow() >= 0){
             JTextField stockFld = new JTextField("0");
             designer(stockFld, "PRODUCT STOCK");
-
+            
+            String item = (String) tableModel.getValueAt(table.getSelectedRow(), 0);
+            int currQuantity = (int) tableModel.getValueAt(table.getSelectedRow(), 1);
+            
             Object[] message = {
-                "How many " + tableModel.getValueAt(table.getSelectedRow(), 0) + " do you want to purchase?", stockFld
+                "How many " + item + " do you want to purchase?", stockFld
             };
 
             int result = JOptionPane.showConfirmDialog(null, message, "PURCHASE PRODUCT", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
 
             if (result == JOptionPane.OK_OPTION) {
-                System.out.println(stockFld.getText());
+                try{
+                    int quantity = Integer.parseInt(stockFld.getText());
+                    if(currQuantity < quantity){
+                        JOptionPane.showMessageDialog(null, "You're quantity of choice does not match\nthe available stock quantity.", "Invalid Quantity", JOptionPane.WARNING_MESSAGE);
+                    }else{
+                        if(sqlite.buyProduct(item, quantity)){
+                            logger.log("PURCHASE", this.m.getSessionUserName(), "Item: " + item + " Quantity: " + quantity);
+                            if(quantity > 0)
+                                quantity *= -1;
+                            sqlite.addHistory(this.m.getSessionUserName(), item, quantity);
+                            new Dialogs().notifyDialog("Item Purchase Attempt", "Purchase", true);
+                        }else{
+                            logger.log("PURCHASE", "SYSTEM", "Item Purchase Failed");
+                            new Dialogs().notifyDialog("Item Purchase Attempt", "Purchase", false);
+                        }
+                    }
+                }catch(NumberFormatException ex){
+                    new Dialogs().notifyDialog("Item Purchase Attempt", "Purchase", false);
+                    logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+                }
+                reloadTable();
             }
         }
+        reloadTable();
     }//GEN-LAST:event_purchaseBtnActionPerformed
 
     private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
