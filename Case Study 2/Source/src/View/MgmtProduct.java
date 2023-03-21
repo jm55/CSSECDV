@@ -42,8 +42,8 @@ public class MgmtProduct extends javax.swing.JPanel {
     public void init(Main m){
         this.m = m;
         
-        int[] allowables = {2,3};
-        validate.validateSession(null, allowables, this.m.getSessionRole());
+        int[] allowables = {2,3,4};
+        validate.validateSession(allowables, this.m.getSessionRole());
         
         if(this.m.getSessionRole() == 2){ //Client
             //UNCOMMENT TO DISABLE BUTTONS

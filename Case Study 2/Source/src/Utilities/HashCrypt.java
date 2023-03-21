@@ -28,9 +28,19 @@ import javax.crypto.spec.SecretKeySpec;
  * @author ejose
  */
 public class HashCrypt {
-    private final IvParameterSpec acctIV = generateIv("?Gd.Q~M-4:cS?YcT");
-    private final IvParameterSpec sessionIV = generateIv("KXby'qX58W%d*@$p");
+    private final int passwordKeyLength = 32;
+    private final int sessionKeyLength = 24;
+    private final String sessionKey = "CS5eCdV_sI1_5eSsi0n";
+    private final String passwordKey = "C5sEcDv_s1I_p@5sW0rD";
     
+    private final IvParameterSpec acctIV = generateIv(passwordKey.substring(0,16));
+    private final IvParameterSpec sessionIV = generateIv(passwordKey.substring(0,16));
+    
+    /**
+     * Get SHA256 of a given String
+     * @param input String to be hashed
+     * @return SHA256 of the input
+     */
     public String getSHA256(String input){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -41,6 +51,11 @@ public class HashCrypt {
         return null;
     }
     
+    /**
+     * Get SHA384 of a given String
+     * @param input String to be hashed
+     * @return SHA384 of the input
+     */
     public String getSHA384(String input){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
@@ -51,24 +66,55 @@ public class HashCrypt {
         return null;
     }
     
+    /**
+     * Get the Password Hash of a given credential
+     * @param username Username credential
+     * @param plaintext Password credential (in plaintext)
+     * @return Hashed credentials
+     */
     public String getPasswordHash(final String username, final String plaintext){
         return getSHA384("$/" + username+ "::" + plaintext);
     }
     
+    /**
+     * FOR USE IN PASSWORDS
+     * Get the encrypted has from the credentials of a user
+     * @param username Username credential
+     * @param plaintext Password credential (in plaintext)
+     * @return Encrypted string of the given credentials
+     */
     public String getEncryptedPass(final String username, final String plaintext){
-        return encrypt(getPasswordHash(username, plaintext), "C5SecDV_s1L_p@5sW0rD", 32, acctIV);
+        return encrypt(getPasswordHash(username, plaintext), passwordKey, passwordKeyLength, acctIV);
     }
     
+    /**
+     * FOR USE IN PASSWORDS
+     * Get the decrypted hash given a ciphertext.
+     * @param ciphertext Ciphertext to be decrypted
+     * @return Decrypted hash from ciphertext
+     */
     public String getDecryptedPass(final String ciphertext){
-        return decrypt(ciphertext, "C5SecDV_s1L_p@5sW0rD", 32, acctIV);
+        return decrypt(ciphertext, passwordKey, passwordKeyLength, acctIV);
     }
     
-    public String getEncryptedSession(String plainSession){
-        return encrypt(plainSession, "C5SecDV_s1L_5eSsi0n", 24, sessionIV);
+    /**
+     * FOR USE IN SESSIONS
+     * Get the encrypted session data.
+     * @param plainSession Plaintext session data
+     * @return Encrypted session data
+     */
+    public String getEncryptedSession(final String plainSession){
+        return encrypt(plainSession, sessionKey, sessionKeyLength, sessionIV);
     }
     
-    public String getDecryptedSession(String cipherSession){
-        return decrypt(cipherSession, "C5SecDV_s1L_5eSsi0n", 24, sessionIV);
+    /**
+     * FOR USE IN SESSIONS
+     * Get the decrypted session data
+     * @param cipherSession Encrypted session data
+     * @return Decrypted session data
+     */
+    public String getDecryptedSession(final String cipherSession){
+        return decrypt(cipherSession, sessionKey, sessionKeyLength, sessionIV);
     }
     
     public String getSessionString(final int id, final String username, final int role){
@@ -87,20 +133,16 @@ public class HashCrypt {
     }
     
     /**
-     * Reference: https://www.geeksforgeeks.org/sha-256-hash-in-java/
+     * 
      * @param hash
      * @return 
      */
-    private final String toHexString(byte[] hash)
-    {
-        // Convert byte array into signum representation
-        BigInteger number = new BigInteger(1, hash);
- 
+    private final String toHexString(byte[] hash){
         // Convert message digest into hex value
-        StringBuilder hexString = new StringBuilder(number.toString(16));
+        StringBuilder hexString = new StringBuilder(new BigInteger(1, hash).toString(16));
  
         // Pad with leading zeros
-        while (hexString.length() < 64)
+        while(hexString.length() < 64)
             hexString.insert(0, '0');
  
         return hexString.toString();

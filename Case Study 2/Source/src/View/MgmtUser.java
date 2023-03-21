@@ -5,6 +5,7 @@
  */
 package View;
 
+import Utilities.Dialogs;
 import Controller.Main;
 import Utilities.HashCrypt;
 import Utilities.Validator;
@@ -32,9 +33,11 @@ public class MgmtUser extends javax.swing.JPanel {
     private HashCrypt hs;
     private Main m;
     private Logger logger;
+    private Dialogs dialog;
     
     public MgmtUser(SQLite sqlite) {
         initComponents();
+        this.dialog = new Dialogs();
         this.hs = new HashCrypt();
         this.validate = new Validator();
         this.sqlite = sqlite;
@@ -67,7 +70,7 @@ public class MgmtUser extends javax.swing.JPanel {
     
     private boolean isSameUser(final String targetUsername){
         if(targetUsername.equals(this.m.getSessionUserName())){
-            errorDialog("Setting your own role is disallowed!");
+            dialog.errorDialog("Setting your own role is disallowed!", "User Management");
             return true;
         }else
             return false;
@@ -87,7 +90,7 @@ public class MgmtUser extends javax.swing.JPanel {
             if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
                 return true;
             }else{
-                errorDialog("Incorrect Admin password,\nplease try again.");
+                dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
                 return false;
             }
         }else{
@@ -112,7 +115,7 @@ public class MgmtUser extends javax.swing.JPanel {
         return out;
     }
 
-    public void designer(JTextField component, String text){
+    private void designer(JTextField component, String text){
         component.setSize(70, 600);
         component.setFont(new java.awt.Font("Tahoma", 0, 18));
         component.setBackground(new java.awt.Color(240, 240, 240));
@@ -248,16 +251,16 @@ public class MgmtUser extends javax.swing.JPanel {
                     int targetRole = Integer.parseInt(result.split("-")[0]);
                     if(this.sqlite.changeRole(targetUser, targetRole)){
                         this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "EDIT ROLE: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
-                        notifyDialog("Change Role", true);
+                        dialog.notifyDialog("Change Role", "User Management", true);
                     }
                     else{
                         this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "EDIT ROLE FAILED: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
-                        notifyDialog("Change Role", false);
+                        dialog.notifyDialog("Change Role", "User Management", false);
                     }
                     reloadTable();
                 }
             }else
-                errorDialog("Incorrect Admin password,\nplease try again.");
+                dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
         }
     }//GEN-LAST:event_editRoleBtnActionPerformed
 
@@ -274,15 +277,15 @@ public class MgmtUser extends javax.swing.JPanel {
                     //ADD LOGGING AFTER USER-IMPOSED DELETION
                     if(this.sqlite.deleteUser(targetUser)){
                         this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
-                        notifyDialog("Delete User", true);
+                        dialog.notifyDialog("Delete User", "User Management", true);
                     }
                         
                     else{
                         this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "DELETE FAILED: "+ targetUser));
-                        notifyDialog("Delete User", false);
+                        dialog.notifyDialog("Delete User", "User Management", false);
                     }
                 }else
-                    errorDialog("Incorrect Admin password,\nplease try again.");
+                    dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
                 reloadTable();
             }
         }
@@ -304,22 +307,22 @@ public class MgmtUser extends javax.swing.JPanel {
                     if(toLock){
                         if(this.sqlite.lockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "LOCK: " + target));
-                            notifyDialog("User Locking", true);
+                            dialog.notifyDialog("User Locking", "User Management", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "LOCK FAILED: "+ target));
-                            notifyDialog("User Locking", false);
+                            dialog.notifyDialog("User Locking", "User Management", false);
                         }
                     }else{
                         if(this.sqlite.unlockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "UNLOCK: " + target));
-                            notifyDialog("User Unlocking", true);
+                            dialog.notifyDialog("User Unlocking", "User Management", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "UNLOCK FAILED: " + target));
-                            notifyDialog("User Unlocking", false);
+                            dialog.notifyDialog("User Unlocking", "User Management", false);
                         }
                     }
                 }else
-                    errorDialog("Incorrect Admin password,\nplease try again.");
+                    dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
             }
             
             reloadTable();
@@ -347,42 +350,32 @@ public class MgmtUser extends javax.swing.JPanel {
             
             if (result == JOptionPane.OK_OPTION) {
                 if(!validate.passwordMatches(new String(password.getPassword()), new String(confpass.getPassword()))){ //Validate Pass and ConfPass Match
-                    errorDialog("Inputted passwords don't match,\nplease try again.");
+                    dialog.errorDialog("Inputted passwords don't match,\nplease try again.", "User Management");
                 }else if(!validate.passwordWithinLimit(new String(password.getPassword()))){ //Validate Pass Not Current Pass
-                    errorDialog("Password not within limit,\nplease try again.\n\nMin Character Length: " + validate.minLength + "\nMax Character Length: " + validate.maxLength);
+                    dialog.errorDialog("Password not within limit,\nplease try again.\n\nMin Character Length: " + validate.minLength + "\nMax Character Length: " + validate.maxLength, "User Management");
                 }else if(!validate.isValidPasswordString(new String(password.getPassword()))){ //Validate Password Allowable
-                    errorDialog("Password don't comply with rules.\n" + "Invalid inputs, please try again.\n" 
+                    dialog.errorDialog("Password don't comply with rules.\n" + "Invalid inputs, please try again.\n" 
                                 + "Valid Username Characters: Lowercase Letters, Numbers, -, _, .\n"
-                                + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/)");
+                                + "Valid Password Characters: Upper and Lowercase, Numbers, Symbols (~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/)", "User Management");
                 }else if(this.sqlite.authenticateUser(uname, new String(password.getPassword()))){ //Same Password as Current User
-                    errorDialog("Password is the same as before,\nplease try again.");
+                    dialog.errorDialog("Password is the same as before,\nplease try again.", "User Management");
                 }else{
                     if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
                         if(this.sqlite.changePassword(uname, new String(password.getPassword()))){
                             this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "PW CHANGE: " + uname));
-                            notifyDialog("Password Change", true);
+                            dialog.notifyDialog("Password Change", "User Management", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "PW CHANGE FAILED: " + uname));
-                            errorDialog("Error Changing Password");
+                            dialog.errorDialog("Error Changing Password", "User Management");
                         }
                     }else{
-                        errorDialog("Incorrect Admin password,\nplease try again.");
+                        dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
                     }
                 }
             }
         }
     }//GEN-LAST:event_chgpassBtnActionPerformed
 
-    private void errorDialog(String message){
-        JOptionPane.showMessageDialog(this, message, "User Management", JOptionPane.WARNING_MESSAGE);
-    }
-    
-    private void notifyDialog(String message, boolean success){
-        String state = "Successful!";
-        if(!success)
-            state = "Failed";
-        JOptionPane.showMessageDialog(this, message + " " + state, "User Management", JOptionPane.INFORMATION_MESSAGE);
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton chgpassBtn;

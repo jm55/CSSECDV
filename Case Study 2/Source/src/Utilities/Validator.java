@@ -107,9 +107,9 @@ public class Validator {
         return false;
     }
     
-    public void validateSession(JFrame frame, int[] allowableRole, int role){
+    public void validateSession(int[] allowableRole, int role){
         if(!checkSession(allowableRole, role)){
-            JOptionPane.showMessageDialog(frame, "Invalid User Account Role Detected!\nProgram terminating for DB safety.", "Error Occured", JOptionPane.ERROR);
+            JOptionPane.showMessageDialog(null, "Invalid User Account Role Detected!\nProgram terminating for DB safety.", "Error Occured", JOptionPane.ERROR);
             System.exit(1);
         }else
             return;
@@ -117,6 +117,6 @@ public class Validator {
     
     public void validateSession(JFrame frame, int allowableRole, int role){
         int[] allowables = {allowableRole};
-        validateSession(frame, allowables, role);
+        validateSession(allowables, role);
     }
 }

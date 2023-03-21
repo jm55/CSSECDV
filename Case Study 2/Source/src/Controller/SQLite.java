@@ -155,6 +155,9 @@ public class SQLite implements Runnable{
     }
 
     public boolean addHistory(String username, String name, int stock, String timestamp) {
+        if(!isUserExists(toUTF_8(username)))
+            return false;
+        
         String sql = "INSERT INTO history(username,name,stock,timestamp) VALUES(?,?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -274,9 +277,9 @@ public class SQLite implements Runnable{
         }
     }
 
-    public ArrayList < History > getHistory() {
+    public ArrayList <History> getHistory() {
         String sql = "SELECT id, username, name, stock, timestamp FROM history";
-        ArrayList < History > histories = new ArrayList < History > ();
+        ArrayList <History> histories = new ArrayList <History> ();
 
         try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -292,21 +295,55 @@ public class SQLite implements Runnable{
         }
         return histories;
     }
+    
+    public ArrayList <History> getHistory(String filter) {
+        String sql = "SELECT * FROM history WHERE username=(?) OR name=(?);";
+        ArrayList <History> histories = new ArrayList <History> ();
 
-    public ArrayList < History > getHistory(String username) {
-        ArrayList < History > filteredHistory = new ArrayList < History > ();
-        ArrayList < History > rawHistory = getHistory();
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, toUTF_8(filter));
+            pstmt.setString(2, toUTF_8(filter));
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                histories.add(new History(rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("name"),
+                    rs.getInt("stock"),
+                    rs.getString("timestamp")));
+            }
+        } catch (Exception ex) {
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        }
+        return histories;
+    }
+    
+    public ArrayList <History> getHistoryByUsername(String username) {
+        String sql = "SELECT * FROM history WHERE username=(?);";
+        ArrayList <History> histories = new ArrayList <History> ();
 
-        for (int i = 0; i < rawHistory.size(); i++)
-            if (rawHistory.get(i).getUsername().equals(username))
-                filteredHistory.add(rawHistory.get(i));
-
-        return filteredHistory;
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, toUTF_8(username));
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                histories.add(new History(rs.getInt("id"),
+                    rs.getString("username"),
+                    rs.getString("name"),
+                    rs.getInt("stock"),
+                    rs.getString("timestamp")));
+            }
+        } catch (Exception ex) {
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+        }
+        return histories;
     }
 
-    public ArrayList < Logs > getLogs() {
+    public ArrayList <Logs> getLogs() {
         String sql = "SELECT id, event, username, desc, timestamp FROM logs";
-        ArrayList < Logs > logs = new ArrayList < Logs > ();
+        ArrayList <Logs> logs = new ArrayList <Logs> ();
 
         try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -323,17 +360,19 @@ public class SQLite implements Runnable{
         return logs;
     }
 
-    public ArrayList < Product > getProduct() {
+    public ArrayList <Product> getProduct() {
         String sql = "SELECT id, name, stock, price FROM product";
-        ArrayList < Product > products = new ArrayList < Product > ();
+        ArrayList <Product> products = new ArrayList <Product> ();
 
         try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-
             while (rs.next()) {
-                products.add(new Product(rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getInt("stock"),
-                    rs.getFloat("price")));
+                products.add(
+                    new Product(rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getInt("stock"),
+                            rs.getFloat("price")
+                    )
+                );
             }
         } catch (Exception ex) {
             //System.out.print(ex.getLocalizedMessage());
@@ -341,9 +380,9 @@ public class SQLite implements Runnable{
         return products;
     }
 
-    public ArrayList < User > getUsers() {
+    public ArrayList <User> getUsers() {
         String sql = "SELECT id, username, password, role, locked FROM users";
-        ArrayList < User > users = new ArrayList < User > ();
+        ArrayList <User> users = new ArrayList <User> ();
 
         try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
@@ -366,7 +405,7 @@ public class SQLite implements Runnable{
      * @return User object that matches username, null if nothing was found.
      */
     private User getUser(final String username) {
-        ArrayList < User > users = getUsers();
+        ArrayList <User> users = getUsers();
         for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getUsername().equalsIgnoreCase(username))
                 return users.get(i);
@@ -380,7 +419,7 @@ public class SQLite implements Runnable{
      * @return User object that matches userID, null if nothing was found.
      */
     private User getUser(final int userID) {
-        ArrayList < User > users = getUsers();
+        ArrayList <User> users = getUsers();
         for (int i = 0; i < users.size(); i++) {
             if (userID == users.get(i).getId())
                 return users.get(i);

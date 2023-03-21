@@ -5,6 +5,7 @@
  */
 package View;
 
+import Utilities.Dialogs;
 import Controller.Main;
 import Controller.SQLite;
 import Model.History;
@@ -24,11 +25,12 @@ public class MgmtHistory extends javax.swing.JPanel {
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     private Validator validate;
-    
+    private Dialogs dialog;
     private Main m = null;
     
     public MgmtHistory(SQLite sqlite) {
         initComponents();
+        this.dialog = new Dialogs();
         this.validate = new Validator();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
@@ -42,50 +44,87 @@ public class MgmtHistory extends javax.swing.JPanel {
         
     }
     
+    private void fillTable(ArrayList<History> history){
+        //CLEAR TABLE
+        for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
+            tableModel.removeRow(0);
+        }
+        
+        //FILL TABLE
+        if(history != null){
+            for(int nCtr = 0; nCtr < history.size(); nCtr++){
+                Product product = sqlite.getProduct(history.get(nCtr).getName());
+                int s = history.get(nCtr).getStock();
+                if(s < 0 && this.m.getSessionRole()==2)
+                    s *= -1;
+                tableModel.addRow(new Object[]{
+                    history.get(nCtr).getUsername(), 
+                    history.get(nCtr).getName(),
+                    s,
+                    product.getPrice(), 
+                    product.getPrice() * history.get(nCtr).getStock(), 
+                    history.get(nCtr).getTimestamp()
+                });
+            }
+        }
+    }
+    
+    private void reloadTable(){
+        //LOAD CONTENTS
+        ArrayList<History> history = null;
+        if(this.m.getSessionRole() == 2){ //Client
+            history = sqlite.getHistoryByUsername(this.m.getSessionUserName());
+        }else if(this.m.getSessionRole() == 4){ //Manager
+            history = sqlite.getHistory();
+        }
+        if(history != null)
+            fillTable(history);
+        else
+            dialog.errorDialog("Error reloading table.\nNo data collected.", "History Management");
+    }
+    
+    private void reloadTable(String filter){
+        //LOAD CONTENTS
+        ArrayList<History> history = sqlite.getHistory(filter);
+        if(history != null){
+            fillTable(history);
+        }else
+            dialog.errorDialog("Error reloading table.\nNo data collected.", "History Management");
+    }
+    
     public void init(Main m){
         this.m = m;
         
         int[] allowables = {2,4};
-        validate.validateSession(null, allowables, this.m.getSessionRole());
+        validate.validateSession(allowables, this.m.getSessionRole());
         
         if(this.m.getSessionRole() != 2 && this.m.getSessionRole() != 4){
             this.m = null;
             return;
         }
         
-        //UNCOMMENT TO DISABLE BUTTONS
-        searchBtn.setVisible(false);
-        //reportBtn.setVisible(false);
         
-        //CLEAR TABLE
-        for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
-            tableModel.removeRow(0);
-        }
-        
-        //LOAD CONTENTS
-        ArrayList<History> history = null;
-        if(this.m.getSessionRole() == 2){ //Client
-            history = sqlite.getHistory(this.m.getSessionUserName());
-        }else if(this.m.getSessionRole() == 4){ //Manager
-            history = sqlite.getHistory();
-        }
-        
-        if(history != null){
-            for(int nCtr = 0; nCtr < history.size(); nCtr++){
-                Product product = sqlite.getProduct(history.get(nCtr).getName());
-                tableModel.addRow(new Object[]{
-                    history.get(nCtr).getUsername(), 
-                    history.get(nCtr).getName(), 
-                    history.get(nCtr).getStock(), 
-                    product.getPrice(), 
-                    product.getPrice() * history.get(nCtr).getStock(), 
-                    history.get(nCtr).getTimestamp()
-                });
-            }
-        }   
+        resetButtons();
+        loadButtons(this.m.getSessionRole());
+        reloadTable();
     }
     
-    public void designer(JTextField component, String text){
+    private void resetButtons(){
+        searchBtn.setVisible(false);
+        reloadBtn.setVisible(false);
+    }
+    
+    private void loadButtons(final int role){
+        if(role == 2){ //Client
+            reloadBtn.setVisible(true);
+        }
+        if(role == 4){
+            searchBtn.setVisible(true);
+        reloadBtn.setVisible(true);
+        }
+    } 
+    
+    private void designer(JTextField component, String text){
         component.setSize(70, 600);
         component.setFont(new java.awt.Font("Tahoma", 0, 18));
         component.setBackground(new java.awt.Color(240, 240, 240));
@@ -193,32 +232,8 @@ public class MgmtHistory extends javax.swing.JPanel {
 
         int result = JOptionPane.showConfirmDialog(null, message, "SEARCH HISTORY", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
 
-        if (result == JOptionPane.OK_OPTION) {
-//          CLEAR TABLE
-            for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
-                tableModel.removeRow(0);
-            }
-
-//          LOAD CONTENTS
-            ArrayList<History> history = sqlite.getHistory();
-            for(int nCtr = 0; nCtr < history.size(); nCtr++){
-                if(searchFld.getText().contains(history.get(nCtr).getUsername()) || 
-                   history.get(nCtr).getUsername().contains(searchFld.getText()) || 
-                   searchFld.getText().contains(history.get(nCtr).getName()) || 
-                   history.get(nCtr).getName().contains(searchFld.getText())){
-                
-                    Product product = sqlite.getProduct(history.get(nCtr).getName());
-                    tableModel.addRow(new Object[]{
-                        history.get(nCtr).getUsername(), 
-                        history.get(nCtr).getName(), 
-                        history.get(nCtr).getStock(), 
-                        product.getPrice(), 
-                        product.getPrice() * history.get(nCtr).getStock(), 
-                        history.get(nCtr).getTimestamp()
-                    });
-                }
-            }
-        }
+        if (result == JOptionPane.OK_OPTION)
+            reloadTable(searchFld.getText());
     }//GEN-LAST:event_searchBtnActionPerformed
 
     private void reloadBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reloadBtnActionPerformed
