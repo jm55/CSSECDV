@@ -167,6 +167,7 @@ public class SQLite {
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
         } finally {
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Add History Success!");
@@ -199,6 +200,7 @@ public class SQLite {
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
         } finally {
             if (result != 0) {
                 logger.printOnly("DB", "SYSTEM", "Add Logs Success!");
@@ -222,6 +224,7 @@ public class SQLite {
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
         } finally {
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Add Product Success!");
@@ -259,6 +262,7 @@ public class SQLite {
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
         } finally {
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Add User Success!");
@@ -425,6 +429,7 @@ public class SQLite {
      * @param locked Lock value.
      */
     private boolean setLocked(final String username, final int locked) {
+        int result = -1;
         String sql = "UPDATE users SET locked=(?) WHERE username=(?);";
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             //PREPARED STATEMENT EXAMPLE
@@ -434,7 +439,11 @@ public class SQLite {
             else
                 pstmt.setInt(1, locked);
             pstmt.setString(2, toUTF_8(username));
-            int result = pstmt.executeUpdate();
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            //System.out.print(ex.getLocalizedMessage());
+            return true;
+        } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Set Locked Success!");
                 return true;
@@ -442,9 +451,6 @@ public class SQLite {
                 logger.log("DB", "SYSTEM", "Set Locked Failed!");
                 return false;
             }
-        } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
-            return true;
         }
     }
 
@@ -461,13 +467,18 @@ public class SQLite {
             return false;
         }
         String sql = "UPDATE users SET role=(?) WHERE username=(?);";
+        int result = -1;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, role+"");
             pstmt.setString(2, username);
 
-            int result = pstmt.executeUpdate();
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            //System.out.print(ex.getLocalizedMessage());
+            return false;
+        } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Set Role Success!");
                 return true;
@@ -475,9 +486,6 @@ public class SQLite {
                 logger.log("DB", "SYSTEM", "Set Role Failed!");
                 return false;
             }
-        } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
-            return false;
         }
     }
 
@@ -518,12 +526,18 @@ public class SQLite {
     private boolean setPassword(final String username, final String plaintext) {
         final String encrypted = hs.getEncryptedPass(username, plaintext);
         String sql = "UPDATE users SET password=(?) WHERE username=(?);";
+        
+        int result = -1;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, encrypted);
             pstmt.setString(2, toUTF_8(username));
-            int result = pstmt.executeUpdate();
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            //System.out.print(ex.getLocalizedMessage());
+            return false;
+        } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Set Password Success!");
                 return true;
@@ -531,9 +545,6 @@ public class SQLite {
                 logger.log("DB", "SYSTEM", "Set Password Failed!");
                 return false;
             }
-        } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
-            return false;
         }
     }
 
