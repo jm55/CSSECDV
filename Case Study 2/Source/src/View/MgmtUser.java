@@ -246,13 +246,18 @@ public class MgmtUser extends javax.swing.JPanel {
                     "EDIT USER ROLE", JOptionPane.QUESTION_MESSAGE, null, options, options[(int)tableModel.getValueAt(table.getSelectedRow(), 2) - 1]);
                 if(result != null){
                     int targetRole = Integer.parseInt(result.split("-")[0]);
-                    if(this.sqlite.changeRole(targetUser, targetRole))
+                    if(this.sqlite.changeRole(targetUser, targetRole)){
                         this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "EDIT ROLE: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
-                    else
+                        notifyDialog("Change Role", true);
+                    }
+                    else{
                         this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "EDIT ROLE FAILED: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
+                        notifyDialog("Change Role", false);
+                    }
                     reloadTable();
                 }
-            }
+            }else
+                errorDialog("Incorrect Admin password,\nplease try again.");
         }
     }//GEN-LAST:event_editRoleBtnActionPerformed
 
@@ -267,11 +272,17 @@ public class MgmtUser extends javax.swing.JPanel {
             if (result == JOptionPane.YES_OPTION) {
                 if(confirmAdmin("Delete User")){
                     //ADD LOGGING AFTER USER-IMPOSED DELETION
-                    if(this.sqlite.deleteUser(targetUser))
+                    if(this.sqlite.deleteUser(targetUser)){
                         this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
-                    else
+                        notifyDialog("Delete User", true);
+                    }
+                        
+                    else{
                         this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "DELETE FAILED: "+ targetUser));
-                }
+                        notifyDialog("Delete User", false);
+                    }
+                }else
+                    errorDialog("Incorrect Admin password,\nplease try again.");
                 reloadTable();
             }
         }
@@ -293,17 +304,22 @@ public class MgmtUser extends javax.swing.JPanel {
                     if(toLock){
                         if(this.sqlite.lockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "LOCK: " + target));
+                            notifyDialog("User Locking", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "LOCK FAILED: "+ target));
+                            notifyDialog("User Locking", false);
                         }
                     }else{
                         if(this.sqlite.unlockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "UNLOCK: " + target));
+                            notifyDialog("User Unlocking", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "UNLOCK FAILED: " + target));
+                            notifyDialog("User Unlocking", false);
                         }
                     }
-                }
+                }else
+                    errorDialog("Incorrect Admin password,\nplease try again.");
             }
             
             reloadTable();
@@ -344,9 +360,10 @@ public class MgmtUser extends javax.swing.JPanel {
                     if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
                         if(this.sqlite.changePassword(uname, new String(password.getPassword()))){
                             this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "PW CHANGE: " + uname));
+                            notifyDialog("Password Change", true);
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "PW CHANGE FAILED: " + uname));
-                            errorDialog("Error changing password!");
+                            errorDialog("Error Changing Password");
                         }
                     }else{
                         errorDialog("Incorrect Admin password,\nplease try again.");
@@ -358,6 +375,13 @@ public class MgmtUser extends javax.swing.JPanel {
 
     private void errorDialog(String message){
         JOptionPane.showMessageDialog(this, message, "User Management", JOptionPane.WARNING_MESSAGE);
+    }
+    
+    private void notifyDialog(String message, boolean success){
+        String state = "Successful!";
+        if(!success)
+            state = "Failed";
+        JOptionPane.showMessageDialog(this, message + " " + state, "User Management", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

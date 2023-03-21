@@ -15,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.PreparedStatement;
-import java.util.Date;
 
 public class SQLite implements Runnable{
 
