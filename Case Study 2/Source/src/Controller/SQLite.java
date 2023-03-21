@@ -18,7 +18,7 @@ import java.sql.PreparedStatement;
 
 public class SQLite implements Runnable{
 
-    public int DEBUG_MODE = 0;
+    private int DEBUG_MODE = 0;
 
     private HashCrypt hs = new HashCrypt();
     private String driverURL = "jdbc:sqlite:" + "database.db";
@@ -31,6 +31,17 @@ public class SQLite implements Runnable{
         this.logger = new Logger(this);
     }
 
+    public void setDebug(final boolean debug){
+        if(debug)
+            this.DEBUG_MODE = 1;
+        else
+            this.DEBUG_MODE = 0;
+    }
+    
+    public int getDebug(){
+        return this.DEBUG_MODE;
+    }
+    
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             if (conn != null) {
@@ -342,11 +353,15 @@ public class SQLite implements Runnable{
     }
 
     public ArrayList <Logs> getLogs() {
-        String sql = "SELECT id, event, username, desc, timestamp FROM logs";
+        String sql = "SELECT id, event, username, desc, timestamp FROM logs WHERE username!='SYSTEM'";
+        
+        if(this.DEBUG_MODE == 1)
+            sql = "SELECT id, event, username, desc, timestamp FROM logs;";
+        System.out.println(sql);
         ArrayList <Logs> logs = new ArrayList <Logs> ();
-
-        try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-
+        try (Connection conn = DriverManager.getConnection(driverURL)){
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 logs.add(new Logs(rs.getInt("id"),
                     rs.getString("event"),
@@ -355,7 +370,7 @@ public class SQLite implements Runnable{
                     rs.getString("timestamp")));
             }
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return logs;
     }
@@ -375,7 +390,7 @@ public class SQLite implements Runnable{
                 );
             }
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return products;
     }
@@ -394,7 +409,7 @@ public class SQLite implements Runnable{
                     rs.getInt("locked")));
             }
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return users;
     }
@@ -457,7 +472,7 @@ public class SQLite implements Runnable{
                 rs.getInt("stock"),
                 rs.getFloat("price"));
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return product;
     }
@@ -480,7 +495,7 @@ public class SQLite implements Runnable{
             pstmt.setString(2, toUTF_8(username));
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
             return true;
         } finally{
             if (result != 0) {
@@ -515,7 +530,7 @@ public class SQLite implements Runnable{
 
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
             return false;
         } finally{
             if (result != 0) {
@@ -552,7 +567,7 @@ public class SQLite implements Runnable{
                 return false;
             }
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
             return false;
         }
     }
@@ -574,7 +589,7 @@ public class SQLite implements Runnable{
             pstmt.setString(2, toUTF_8(username));
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
             return false;
         } finally{
             if (result != 0) {

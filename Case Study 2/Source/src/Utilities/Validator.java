@@ -4,9 +4,13 @@
  */
 package Utilities;
 
+import Controller.Main;
+import Controller.SQLite;
 import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 /**
  *
@@ -19,9 +23,41 @@ public class Validator {
     public final String usernameRegex = "[a-z0-9_\\-.]+";
     public final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
     
+    private final Dialogs dialog = new Dialogs();
+    
     public boolean isSamePassword(){
         return true;
     }
+    
+    private void designer(JTextField component, String text){
+        component.setSize(70, 600);
+        component.setFont(new java.awt.Font("Tahoma", 0, 18));
+        component.setBackground(new java.awt.Color(240, 240, 240));
+        component.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        component.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true), text, javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12)));
+    }
+    
+    public boolean confirmAdmin(String title, Main m, SQLite sqlite){
+        JPasswordField adminPass = new JPasswordField();
+        
+        designer(adminPass, "ADMIN PASSWORD");
+        
+        Object[] message = {
+            "Confirm Admin Password: ", adminPass
+        };
+
+        int result = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+        if(result == JOptionPane.OK_OPTION){
+            if(sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
+                return true;
+            }else{
+                dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
+                return false;
+            }
+        }else{
+            return false;
+        }
+    } 
     
     public boolean credentialWithinLimit(String username, String password){
         if((username.length() <= this.maxLength && password.length() <= this.maxLength) && password.length() >= minLength){

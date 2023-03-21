@@ -5,6 +5,8 @@
  */
 package Model;
 
+import Controller.SQLite;
+import Utilities.Logger;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,10 +45,11 @@ public class Logs {
         this.event = event;
         this.username = username;
         this.desc = desc;
+        Logger logger = new Logger(new SQLite());
         try {
             this.timestamp = new Timestamp(dateformat.parse(timestamp).getTime());
         } catch (ParseException ex) {
-            ex.printStackTrace();
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
     }
     

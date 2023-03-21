@@ -33,7 +33,7 @@ public class Logger {
     
     private String printableLogs(Logs l){
         if(!l.getDesc().contains("Add Logs"))
-            return l.getTimestamp().toString() + " " + l.getEvent() + " - " + l.getDesc() + " (" + l.getUsername() + ")";
+            return l.getTimestamp().toString() + " " + l.getEvent() + " - " + l.getDesc() + "(" + l.getUsername() + ")";
         return null;
     }
 }

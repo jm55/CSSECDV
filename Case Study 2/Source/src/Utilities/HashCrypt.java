@@ -1,9 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Utilities;
 
+import Controller.SQLite;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +32,8 @@ public class HashCrypt {
     
     private final IvParameterSpec acctIV = generateIv(passwordKey.substring(0,16));
     private final IvParameterSpec sessionIV = generateIv(passwordKey.substring(0,16));
+    
+    private final Logger logger = new Logger(new SQLite());
     
     /**
      * Get SHA256 of a given String
@@ -164,7 +163,7 @@ public class HashCrypt {
             cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), iv);
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }
@@ -176,7 +175,7 @@ public class HashCrypt {
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
-            System.out.println("AES Error: " + ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }
@@ -195,7 +194,7 @@ public class HashCrypt {
             key = Arrays.copyOf(key, keyLength);
             return new SecretKeySpec(key, "AES");
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            //System.out.println("AES Error: " + ex.getLocalizedMessage());
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
         }
         return null;
     }

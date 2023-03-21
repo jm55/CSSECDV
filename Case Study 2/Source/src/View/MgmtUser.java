@@ -76,28 +76,6 @@ public class MgmtUser extends javax.swing.JPanel {
             return false;
     }
     
-    private boolean confirmAdmin(String title){
-        JPasswordField adminPass = new JPasswordField();
-        
-        designer(adminPass, "ADMIN PASSWORD");
-        
-        Object[] message = {
-            "Confirm Admin Password: ", adminPass
-        };
-
-        int result = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
-        if(result == JOptionPane.OK_OPTION){
-            if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
-                return true;
-            }else{
-                dialog.errorDialog("Incorrect Admin password,\nplease try again.", "User Management");
-                return false;
-            }
-        }else{
-            return false;
-        }
-    }
-    
     public void init(Main m){
         this.m = m;
         
@@ -239,7 +217,7 @@ public class MgmtUser extends javax.swing.JPanel {
             String targetUser = (String) tableModel.getValueAt(table.getSelectedRow(), 0);
             if(isSameUser(targetUser))
                 return;
-            if(confirmAdmin("Edit Role")){
+            if(validate.confirmAdmin("Edit Role", this.m, this.sqlite)){
                 String[] options = {"1-DISABLED","2-CLIENT","3-STAFF","4-MANAGER","5-ADMIN"};
                 JComboBox optionList = new JComboBox(options);
 
@@ -273,7 +251,7 @@ public class MgmtUser extends javax.swing.JPanel {
             int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete " + targetUser + "?", "DELETE USER", JOptionPane.YES_NO_OPTION);
             
             if (result == JOptionPane.YES_OPTION) {
-                if(confirmAdmin("Delete User")){
+                if(validate.confirmAdmin("Delete User", this.m, this.sqlite)){
                     //ADD LOGGING AFTER USER-IMPOSED DELETION
                     if(this.sqlite.deleteUser(targetUser)){
                         this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
@@ -302,7 +280,7 @@ public class MgmtUser extends javax.swing.JPanel {
             
             int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to " + state + " " + tableModel.getValueAt(table.getSelectedRow(), 0) + "?", "LOCK USER", JOptionPane.YES_NO_OPTION);
             if (result == JOptionPane.YES_OPTION) {
-                if(confirmAdmin("Lock/Unlock Account")){
+                if(validate.confirmAdmin("Lock/Unlock Account", this.m, this.sqlite)){
                     String target = (String)tableModel.getValueAt(table.getSelectedRow(), 0);
                     if(toLock){
                         if(this.sqlite.lockUser(target)){
