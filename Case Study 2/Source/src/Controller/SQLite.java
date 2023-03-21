@@ -31,10 +31,6 @@ public class SQLite {
         this.logger = new Logger(this);
     }
 
-    private String getDateTime() {
-        return new Date().toString();
-    }
-
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             if (conn != null) {
@@ -410,21 +406,6 @@ public class SQLite {
         return getUser(username).getId();
     }
 
-    /**
-     * Removes a user specified by username
-     * @param username 
-     */
-    public void removeUser(String username) {
-        String sql = "DELETE FROM users WHERE username='" + username + "';";
-
-        try (Connection conn = DriverManager.getConnection(driverURL); Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-            System.out.println("User " + username + " has been deleted.");
-        } catch (Exception ex) {
-            //System.out.print(ex.getLocalizedMessage());
-        }
-    }
-
     public Product getProduct(String name) {
         String sql = "SELECT name, stock, price FROM product WHERE name='" + name + "';";
         Product product = null;
@@ -502,6 +483,31 @@ public class SQLite {
 
     public boolean changeRole(final String username, final int role) {
         return setRole(toUTF_8(username), role);
+    }
+    
+    public boolean deleteUser(final String username){
+        return removeUser(toUTF_8(username));
+    }
+    
+    private boolean removeUser(final String username){
+        String sql = "DELETE FROM users WHERE username=(?);";
+        try (Connection conn = DriverManager.getConnection(driverURL)) {
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, username);
+
+            int result = pstmt.executeUpdate();
+            if (result != 0) {
+                logger.log("DB", "SYSTEM", "Delete User Success!");
+                return true;
+            } else {
+                logger.log("DB", "SYSTEM", "Delete User Failed!");
+                return false;
+            }
+        } catch (Exception ex) {
+            //System.out.print(ex.getLocalizedMessage());
+            return false;
+        }
     }
 
     /**

@@ -111,7 +111,8 @@ public class Validator {
         if(!checkSession(allowableRole, role)){
             JOptionPane.showMessageDialog(frame, "Invalid User Account Role Detected!\nProgram terminating for DB safety.", "Error Occured", JOptionPane.ERROR);
             System.exit(1);
-        }
+        }else
+            return;
     }
     
     public void validateSession(JFrame frame, int allowableRole, int role){

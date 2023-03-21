@@ -49,14 +49,11 @@ public class MgmtUser extends javax.swing.JPanel {
 //        chgpassBtn.setVisible(false);
     }
     
-    private void resetTable(){
+    private void reloadTable(){
         //CLEAR TABLE
         for(int nCtr = tableModel.getRowCount(); nCtr > 0; nCtr--){
             tableModel.removeRow(0);
         }
-    }
-    
-    private void loadTable(){
         //LOAD CONTENTS
         ArrayList<User> users = this.sqlite.getUsers();
         for(int nCtr = 0; nCtr < users.size(); nCtr++){
@@ -66,11 +63,6 @@ public class MgmtUser extends javax.swing.JPanel {
                 users.get(nCtr).getRole(), 
                 users.get(nCtr).getLocked()});
         }
-    }
-    
-    private void reloadTable(){
-        resetTable();
-        loadTable();
     }
     
     private boolean isSameUser(final String targetUsername){
@@ -108,9 +100,9 @@ public class MgmtUser extends javax.swing.JPanel {
         
         validate.validateSession(null, 5, this.m.getSessionRole());
         
-        reloadTable();
-        
         JOptionPane.showMessageDialog(this, "For user data privacy and security purposes,\nthe passwords shown on the table\nare not representative of the actual stored passwords.", "Notice", JOptionPane.INFORMATION_MESSAGE);
+        
+        reloadTable();
     }
     
     private String hiddenPassword(){
@@ -174,7 +166,6 @@ public class MgmtUser extends javax.swing.JPanel {
             table.getColumnModel().getColumn(3).setPreferredWidth(100);
         }
 
-        editRoleBtn.setBackground(new java.awt.Color(255, 255, 255));
         editRoleBtn.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         editRoleBtn.setText("EDIT ROLE");
         editRoleBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -183,7 +174,6 @@ public class MgmtUser extends javax.swing.JPanel {
             }
         });
 
-        deleteBtn.setBackground(new java.awt.Color(255, 255, 255));
         deleteBtn.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         deleteBtn.setText("DELETE");
         deleteBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -192,7 +182,6 @@ public class MgmtUser extends javax.swing.JPanel {
             }
         });
 
-        lockBtn.setBackground(new java.awt.Color(255, 255, 255));
         lockBtn.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         lockBtn.setText("LOCK/UNLOCK");
         lockBtn.setToolTipText("");
@@ -202,7 +191,6 @@ public class MgmtUser extends javax.swing.JPanel {
             }
         });
 
-        chgpassBtn.setBackground(new java.awt.Color(255, 255, 255));
         chgpassBtn.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         chgpassBtn.setText("CHANGE PASS");
         chgpassBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -253,11 +241,9 @@ public class MgmtUser extends javax.swing.JPanel {
                 JComboBox optionList = new JComboBox(options);
 
                 optionList.setSelectedIndex((int)tableModel.getValueAt(table.getSelectedRow(), 2) - 1);
-
                 
                 String result = (String)JOptionPane.showInputDialog(null, "USER: " + targetUser, 
                     "EDIT USER ROLE", JOptionPane.QUESTION_MESSAGE, null, options, options[(int)tableModel.getValueAt(table.getSelectedRow(), 2) - 1]);
-
                 if(result != null){
                     int targetRole = Integer.parseInt(result.split("-")[0]);
                     if(this.sqlite.changeRole(targetUser, targetRole))
@@ -279,9 +265,14 @@ public class MgmtUser extends javax.swing.JPanel {
             int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete " + targetUser + "?", "DELETE USER", JOptionPane.YES_NO_OPTION);
             
             if (result == JOptionPane.YES_OPTION) {
-                System.out.println(tableModel.getValueAt(table.getSelectedRow(), 0));
-                
-                //ADD LOGGING AFTER USER-IMPOSED DELETION
+                if(confirmAdmin("Delete User")){
+                    //ADD LOGGING AFTER USER-IMPOSED DELETION
+                    if(this.sqlite.deleteUser(targetUser))
+                        this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
+                    else
+                        this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "DELETE FAILED: "+ targetUser));
+                }
+                reloadTable();
             }
         }
     }//GEN-LAST:event_deleteBtnActionPerformed
@@ -296,20 +287,21 @@ public class MgmtUser extends javax.swing.JPanel {
             }
             
             int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to " + state + " " + tableModel.getValueAt(table.getSelectedRow(), 0) + "?", "LOCK USER", JOptionPane.YES_NO_OPTION);
-            
             if (result == JOptionPane.YES_OPTION) {
                 if(confirmAdmin("Lock/Unlock Account")){
                     String target = (String)tableModel.getValueAt(table.getSelectedRow(), 0);
                     if(toLock){
-                        if(this.sqlite.lockUser(target))
+                        if(this.sqlite.lockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "LOCK: " + target));
-                        else
+                        }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "LOCK FAILED: "+ target));
+                        }
                     }else{
-                        if(this.sqlite.unlockUser(target))
+                        if(this.sqlite.unlockUser(target)){
                             this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "UNLOCK: " + target));
-                        else
+                        }else{
                             this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "UNLOCK FAILED: " + target));
+                        }
                     }
                 }
             }
@@ -351,7 +343,6 @@ public class MgmtUser extends javax.swing.JPanel {
                 }else{
                     if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
                         if(this.sqlite.changePassword(uname, new String(password.getPassword()))){
-                            JOptionPane.showMessageDialog(this, "Password Changed Success!", "Password Change", JOptionPane.INFORMATION_MESSAGE);
                             this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "PW CHANGE: " + uname));
                         }else{
                             this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "PW CHANGE FAILED: " + uname));
