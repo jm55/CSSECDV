@@ -122,24 +122,38 @@ public class HashCrypt {
         return decrypt(cipherSession, sessionKey, sessionKeyLength, sessionIV);
     }
     
-    public String getSessionString(final int id, final String username, final int role){
-        return buildSessionString(id, username, role);
+    /**
+     * Get session data
+     * @param id UserID of the user.
+     * @param username Username of the user.
+     * @param role Role of the user
+     * @return (Unencrypted) session string.
+     */
+    public String getSessionString(final int userID, final String username, final int role){
+        return buildSessionString(userID, username, role);
     }
     
-    private String buildSessionString(final int id, final String username, final int role){
+    /**
+     * Builds the actual session string
+     * @param id UserID of the user.
+     * @param username Username of the user.
+     * @param role Role of the user
+     * @return (Unencrypted) session string
+     */
+    private String buildSessionString(final int userID, final String username, final int role){
         byte[] randomizer = new byte[4];
         new SecureRandom().nextBytes(randomizer);
         
         String datetime = new SimpleDateFormat("HH:mm:ss::yyyy/MM/dd").format(new Date());
         datetime = getSHA256(datetime);
         //randomizer,date,id,uname,role,randomizer
-        return new String(randomizer,StandardCharsets.UTF_8) + "," + datetime + "," + (id+"") + "," + username + "," + (role+"") + "," + new String(randomizer,StandardCharsets.UTF_8);
+        return new String(randomizer,StandardCharsets.UTF_8) + "," + datetime + "," + (userID+"") + "," + username + "," + (role+"") + "," + new String(randomizer,StandardCharsets.UTF_8);
     }
     
     /**
-     * 
-     * @param hash
-     * @return 
+     * Converts byte[] to hex String
+     * @param hash Hash to turn into hex string
+     * @return Hex String equivalent of the hash.
      */
     private final String toHexString(byte[] hash){
         // Convert message digest into hex value
@@ -152,20 +166,31 @@ public class HashCrypt {
         return hexString.toString();
     }
     
+    /**
+     * Generates the IV given the ivValue string.
+     * @param ivValue ivValue.
+     * @return IvParameterSpec of the ivValue.
+     */
     private IvParameterSpec generateIv(String ivValue) {
         return new IvParameterSpec(ivValue.getBytes());
     }
     
     /**
-     * Gets the hash of a given plain-text password.
-     * @param plaintext
-     * @return 
+     * Get the encrypted value of the plaintext input.
+     * @param plaintext Plaintext to be encrypted
+     * @param secretKey Secretkey used to lock the input text
+     * @param keyLength Resulting keylength (limited to 32)
+     * @param iv IvParameterSpec to use for encryption
+     * @return Encrypted string of the given plaintext.
      */
     private String encrypt(final String plaintext, final String secretKey, final int keyLength, IvParameterSpec iv){
+        int newKeyLength = keyLength;
+        if(newKeyLength > 32)
+            newKeyLength = 32;
         try {
             Cipher cipher;
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, AES(keyLength, secretKey), iv);
+            cipher.init(Cipher.ENCRYPT_MODE, AES(newKeyLength, secretKey), iv);
             return Base64.getEncoder().encodeToString(cipher.doFinal(plaintext.getBytes("UTF-8")));
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
             new Logger(new SQLite()).log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
@@ -173,10 +198,21 @@ public class HashCrypt {
         return null;
     }
     
+    /**
+     * Get the decrypted value of the ciphertext input.
+     * @param ciphertext Ciphertext to be Decrypted
+     * @param secretKey Secretkey used to lock the input text
+     * @param keyLength Resulting keylength (limited to 32)
+     * @param iv IvParameterSpec to use for encryption
+     * @return Decrypted string of the given ciphertext.
+     */
     private String decrypt(final String ciphertext, final String secretKey, final int keyLength, IvParameterSpec iv){
+        int newKeyLength = keyLength;
+        if(newKeyLength > 32)
+            newKeyLength = 32;
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, AES(keyLength, secretKey), iv);
+            cipher.init(Cipher.DECRYPT_MODE, AES(newKeyLength, secretKey), iv);
             byte[] plaintext = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
             return new String(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException ex) {
@@ -186,12 +222,17 @@ public class HashCrypt {
     }
     
     /**
-     * Gets AES configuration for hashing function.
-     * @return SecretKeySpec object that contains configured AES.
+     * Get the AES configuration
+     * @param keyLength Resulting keylength (limited to 32)
+     * @param privateKey Secret key to be used as the key for encryption/decryption
+     * @return SecretKeySpec of specified AES configuration
      */
     private final SecretKeySpec AES(final int keyLength, final String privateKey){
         MessageDigest sha;
         byte[] key;
+        int newKeyLength = keyLength;
+        if(newKeyLength > 32)
+            newKeyLength = 32;
         try {
             key = privateKey.getBytes("UTF-8");
             sha = MessageDigest.getInstance("SHA-384");

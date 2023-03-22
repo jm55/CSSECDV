@@ -401,36 +401,36 @@ public class SQLite implements Runnable{
      * Add new user
      * Role set to 2.
      * @param username Username of new user
-     * @param password Password of new user (must be encrypted hash)
+     * @param password Password of new user 
      * @return True if successful, false if otherwise.
      */
-    public boolean newUser(String username, String password){
-        return newUser(username, password, 2);
+    public boolean newUser(String username, String plaintext){
+        return newUser(username, plaintext, 2);
     }
     
     /**
      * Add new user
      * @param username Username of new user
-     * @param password Password of new user (must be encrypted hash)
+     * @param password Password of new user
      * @param role Role of the user.
      * @return True if successful, false if otherwise.
      */
-    public boolean newUser(final String username, final String password, final int role){
-        if(!(validate.isRegisterValid(username, password, password)))
+    public boolean newUser(final String username, final String plaintext, final int role){
+        if(!(validate.isRegisterValid(username, plaintext, plaintext)))
             return false;
         else
-            return addUser(username, password, role);
+            return addUser(username, plaintext, role);
     }
     
     /**
      * Conducts actual writing of new user to DB.
      * @param username Username of new user
-     * @param password Password of new user (must be encrypted hash)
+     * @param plaintext Password of new user
      * @param role Role of the user.
      * @return True if successful, false if otherwise.
      */
-    private boolean addUser(String username, String password, int role) {
-        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
+    private boolean addUser(String username, String plaintext, int role) {
+        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(plaintext))){
             logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
             return false;
         }
@@ -438,14 +438,14 @@ public class SQLite implements Runnable{
         String sql = "INSERT INTO users(username,password,role,locked) VALUES(?,?,?,?)";
         int result = 0;
 
-        if (!validate.credentialWithinLimit(username, password))
+        if (!validate.credentialWithinLimit(username, plaintext))
             return false;
 
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             //PREPARED STATEMENT EXAMPLE
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, toUTF_8(username));
-            pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(password)));
+            pstmt.setString(2, hs.getEncryptedPass(toUTF_8(username), toUTF_8(plaintext)));
             pstmt.setString(3, (role + ""));
             if (role == 0 || role == 1) {
                 pstmt.setString(4, 1 + "");
@@ -772,8 +772,8 @@ public class SQLite implements Runnable{
     /**
      * Buy a product.
      * @param itemname Name of product
-     * @param quantity
-     * @return 
+     * @param quantity Quantity of purchase.
+     * @return True if successful, false if otherwise.
      */
     public boolean buyProduct(final String username, final String itemname, final int quantity){
         if(!validate.isBasicChar(itemname) || !validate.isValidUsernameString(username) || !isUserExists(username)){
@@ -783,6 +783,13 @@ public class SQLite implements Runnable{
         return purchaseProduct(username, itemname, quantity);
     }
     
+    /**
+     * Conducts actual writing of purchase product to DB.
+     * @param username User conducting the purchase.
+     * @param itemname Name of item
+     * @param quantity Quantity of purchase
+     * @return True if successful, false if otherwise.
+     */
     private boolean purchaseProduct(final String username, final String itemname, final int quantity){
         Product copy = getProduct(itemname);
         if(copy == null || quantity <= 0)
@@ -811,9 +818,10 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Sets the locked value of a given user to the given locked value.
-     * @param username Username being locked
-     * @param locked Lock value.
+     * Conducts the actual locking of a user acct.
+     * @param username Username of the target account.
+     * @param locked Value of locked; 0 - Unlock, >0 - Lock
+     * @return True if successful, false if otherwise.
      */
     private boolean setLocked(final String username, final int locked) {
         int result = -1;
@@ -841,6 +849,12 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Change the password of a given user
+     * @param username Username of the target user.
+     * @param password New password (must be in encrypted hash)
+     * @return True if successful, false if otherwise.
+     */
     public boolean changePassword(final String username, final String password) {
         if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
             logger.log("DB", "SYSTEM", "Change Password FAILED (Invalid characters on input)");
@@ -853,6 +867,12 @@ public class SQLite implements Runnable{
         return setPassword(username_UTF, password_UTF);
     }
 
+    /**
+     * Conducts the actual writing of change in role of a given user.
+     * @param username Username of the user.
+     * @param role New role of the user
+     * @return True if successful, false if otherwise.
+     */
     private boolean setRole(final String username, final int role) {
         if (role < 0 || role > 5) {
             return false;
@@ -880,6 +900,12 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Change the role of a user.
+     * @param username Username of the target user.
+     * @param role New role of the user.
+     * @return True if successful, false if otherwise.
+     */
     public boolean changeRole(final String username, final int role) {
         if(!(validate.isValidUsernameString(username))){
             logger.log("DB", "SYSTEM", "Change Role FAILED (Invalid characters on input)");
@@ -888,12 +914,22 @@ public class SQLite implements Runnable{
         return setRole(toUTF_8(username), role);
     }
     
+    /**
+     * Delete a product from DB.
+     * @param itemname Name of product.
+     * @return True if successful, false if otherwise.
+     */
     public boolean deleteProduct(final String itemname){
         if(!validate.isBasicChar(itemname) || !isProductExists(itemname))
             return false;
         return removeProduct(itemname);
     }
     
+    /**
+     * Conducts the actual deletion of a product in DB.
+     * @param itemname Name of product.
+     * @return True if successful, false if otherwise.
+     */
     private boolean removeProduct(final String itemname){
         String sql = "DELETE FROM product WHERE name=(?);";
         int result = -1;
@@ -916,6 +952,11 @@ public class SQLite implements Runnable{
         }
     }
     
+    /**
+     * Delete a user account
+     * @param username Username of the user to be deleted
+     * @return True if successful, false if otherwise.
+     */
     public boolean deleteUser(final String username){
         if(!(validate.isValidUsernameString(username))){
             logger.log("DB", "SYSTEM", "Delete User FAILED (Invalid characters on input)");
@@ -924,6 +965,11 @@ public class SQLite implements Runnable{
         return removeUser(toUTF_8(username));
     }
     
+    /**
+     * Conducts the actual deletion of a user account
+     * @param username Username of the target account
+     * @return True if successful, false if otherwise.
+     */
     private boolean removeUser(final String username){
         String sql = "DELETE FROM users WHERE username=(?);";
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -946,9 +992,10 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Sets the locked value of a given user to the given locked value.
-     * @param username Username being locked
-     * @param locked Lock value.
+     * Conducts the actual setting of new password from db.
+     * @param username Username of the target user
+     * @param plaintext New password to replace
+     * @return True if successful, false if otherwise.
      */
     private boolean setPassword(final String username, final String plaintext) {
         final String encrypted = hs.getEncryptedPass(username, plaintext);
@@ -976,9 +1023,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Checks if user exists such that it's found on the database.
-     * @param uname
-     * @return True if user exists, False if not.
+     * Check if specific user exists on DB.
+     * @param username Username of target user.
+     * @return True if successful, false if otherwise.
      */
     public boolean isUserExists(final String username) {
         if (getUser(username) != null) {
@@ -989,9 +1036,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Checks if user exists such that it's found on the database.
-     * @param userID
-     * @return True if user exists, False if not.
+     * Check if specific user exists on DB.
+     * @param username UserID of target user.
+     * @return True if successful, false if otherwise.
      */
     public boolean isUserExists(final int userID) {
         if (getUser(userID) != null) {
@@ -1001,11 +1048,12 @@ public class SQLite implements Runnable{
         }
     }
 
+    
     /**
-     * Authenticates a user given their username and password.
-     * @param username Username of user
-     * @param password Password of user
-     * @return True if user credentials are authenticated such that it matches the DB's contents, false if otherwise.
+     * Authenticate a user given their credentials
+     * @param username Username of the user
+     * @param plaintext Plaintext password of the user.
+     * @return True if successful, false if otherwise.
      */
     public boolean authenticateUser(final String username, final String plaintext) {
         if (isUserExists(username) && validate.isValidUsernameString(username)) {
@@ -1022,9 +1070,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Checks if a given user (via the username) is locked.
-     * @param username Username of the user. Assumes user as valid.
-     * @return True of locked, false if otherwise.
+     * Check if user is locked
+     * @param username Username of target user.
+     * @return True if successful, false if otherwise.
      */
     public boolean isUserLocked(String username) {
         if(getUser(username)==null)
@@ -1035,9 +1083,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Locks a given user (via the username)
-     * @param username Username of the user.
-     * @return True if successfully locked, false if otherwise.
+     * Lock a user
+     * @param username Username of target user.
+     * @return True if successful, false if otherwise.
      */
     public boolean lockUser(String username) {
         if(!(validate.isValidUsernameString(username))){
@@ -1054,9 +1102,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Unlocks a given user (via the username)
-     * @param username Username of the user.
-     * @return True if successfully locked, false if otherwise.
+     * Unlock a user
+     * @param username Username of target user.
+     * @return True if successful, false if otherwise.
      */
     public boolean unlockUser(String username) {
         if(!(validate.isValidUsernameString(username))){
@@ -1070,12 +1118,17 @@ public class SQLite implements Runnable{
         return false;
     }
 
+    /**
+     * Returns the UTF-8 encoded version the input.
+     * @param input Input string.
+     * @return UTF-8 equivalent of the input.
+     */
     private String toUTF_8(String input) {
         return new String(input.getBytes(), StandardCharsets.UTF_8);
     }
 
     @Override
     public void run() {
-        
+        logger.printOnly("DB", "SYSTEM", "New Thread Launched");
     }
 }
