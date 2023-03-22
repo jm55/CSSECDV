@@ -3,6 +3,7 @@ package View;
 import Utilities.Validator;
 import Controller.SQLite;
 import Model.Logs;
+import Utilities.Dialogs;
 import javax.swing.JOptionPane;
 
 public class Register extends javax.swing.JPanel {
@@ -107,7 +108,10 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     
     private void registerAction(SQLite sql){
-        sql.addUser(getUsername(), getPassword(), 2);
+        if(sql.addUser(getUsername(), getPassword(), 2))
+            new Dialogs().notifyDialog("Account Registration", "Register", true);
+        else
+            new Dialogs().notifyDialog("Account Registration", "Register", false);
     }
     
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
@@ -127,10 +131,13 @@ public class Register extends javax.swing.JPanel {
                 userExists();
                 sql.addLogs(registerLog("New user attempted to register using unavailable username: " + getUsername()));
             }else{
-                registerAction(sql);
-                sql.addLogs(registerLog("New user registered as " + getUsername()));
-                clearInputs();
-                frame.loginNav();
+                if(!getUsername().equals(getPassword())){
+                    registerAction(sql);
+                    sql.addLogs(registerLog("New user registered as " + getUsername()));
+                    clearInputs();
+                    frame.loginNav();
+                }else
+                    new Dialogs().warningDialog("Please don't use the same password as your username.", "Register Attempt Warning");
             }
             sql = null;
         }

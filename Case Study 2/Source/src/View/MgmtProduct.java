@@ -33,7 +33,7 @@ public class MgmtProduct extends javax.swing.JPanel {
         initComponents();
         this.validate = new Validator();
         this.sqlite = sqlite;
-        logger = new Logger(this.sqlite);
+        logger = new Logger(new SQLite());
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
 
@@ -273,13 +273,14 @@ public class MgmtProduct extends javax.swing.JPanel {
     }//GEN-LAST:event_addBtnActionPerformed
 
     private void editBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBtnActionPerformed
+        String originalItemname = tableModel.getValueAt(table.getSelectedRow(), 0) + "";
         if(table.getSelectedRow() >= 0){
-            JTextField nameFld = new JTextField(tableModel.getValueAt(table.getSelectedRow(), 0) + "");
-            JTextField stockFld = new JTextField(tableModel.getValueAt(table.getSelectedRow(), 1) + "");
+            JTextField nameFld = new JTextField(originalItemname);
+            JTextField stockFld = new JTextField(0);
             JTextField priceFld = new JTextField(tableModel.getValueAt(table.getSelectedRow(), 2) + "");
-
+            
             designer(nameFld, "PRODUCT NAME");
-            designer(stockFld, "PRODUCT STOCK");
+            designer(stockFld, "PRODUCT STOCK (ENTER VALUE TO ADD/SUBTRACT)");
             designer(priceFld, "PRODUCT PRICE");
 
             Object[] message = {
@@ -289,11 +290,17 @@ public class MgmtProduct extends javax.swing.JPanel {
             int result = JOptionPane.showConfirmDialog(null, message, "EDIT PRODUCT", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
 
             if (result == JOptionPane.OK_OPTION) {
-                System.out.println(nameFld.getText());
-                System.out.println(stockFld.getText());
-                System.out.println(priceFld.getText());
+                try{
+                    if(sqlite.editProduct(this.m.getSessionUserName(), originalItemname, nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText())))
+                        new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", true);
+                }catch(NumberFormatException ex){
+                    new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", false);
+                    logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+                }
+                
             }
         }
+        reloadTable();
     }//GEN-LAST:event_editBtnActionPerformed
 
     private void deleteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteBtnActionPerformed

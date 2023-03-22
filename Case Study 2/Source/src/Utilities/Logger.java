@@ -15,8 +15,8 @@ public class Logger {
     private static SQLite sql;
     private static int PRINT_MODE = 0;
     
-    public Logger(SQLite sql){
-        this.sql = sql;
+    public Logger(SQLite sqlite){
+        this.sql = sqlite;
         this.PRINT_MODE = PRINT_MODE;
     }
     

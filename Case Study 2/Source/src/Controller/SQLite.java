@@ -16,20 +16,18 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class SQLite implements Runnable{
 
     private int DEBUG_MODE = 0;
-
-    private HashCrypt hs = new HashCrypt();
     private String driverURL = "jdbc:sqlite:" + "database.db";
     private Validator validate;
     private Logger logger;
-
+    private HashCrypt hs;
     public SQLite() {
         run();
+        this.hs = new HashCrypt();
         this.validate = new Validator();
         this.logger = new Logger(this);
     }
@@ -169,10 +167,19 @@ public class SQLite implements Runnable{
     }
 
     public boolean addHistory(final String username, final String name, final int stock){
+        if(!(validate.isBasicChar(username)&&validate.isBasicChar(name))){
+            logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
+            return false;
+        }
         return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
     }
     
     public boolean addHistory(final String username, final String name, final int stock, final String timestamp) {
+        if(!(validate.isBasicChar(username)&&validate.isBasicChar(name)&&validate.isTimestamp(timestamp))){
+            logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
+            return false;
+        }
+        
         if(!isUserExists(toUTF_8(username)))
             return false;
         
@@ -209,6 +216,9 @@ public class SQLite implements Runnable{
     }
 
     public boolean addLogs(String event, String username, String desc, String timestamp) {
+        if(!(validate.isBasicChar(event)&&validate.isBasicChar(username)&&validate.isBasicChar(desc)&&validate.isTimestamp(timestamp))){
+            return false;
+        }
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -234,6 +244,10 @@ public class SQLite implements Runnable{
     }
 
     public boolean addProduct(String name, int stock, double price) {
+        if(!validate.isBasicChar(name)){
+            logger.log("DB", "SYSTEM", "Add product FAILED (Invalid characters on input)");
+            return false;
+        }
         String sql = "INSERT INTO product(name,stock,price) VALUES(?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -258,12 +272,20 @@ public class SQLite implements Runnable{
     }
 
     public boolean addUser(String username, String password) {
+        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
+            logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
+            return false;
+        }
         return addUser(username, password, 1);
     }
 
     public boolean addUser(String username, String password, int role) {
+        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
+            logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
+            return false;
+        }
+        
         String sql = "INSERT INTO users(username,password,role,locked) VALUES(?,?,?,?)";
-
         int result = 0;
 
         if (!validate.credentialWithinLimit(username, password))
@@ -315,6 +337,9 @@ public class SQLite implements Runnable{
     }
     
     public ArrayList <History> getHistory(String filter) {
+        if(!(validate.isValidUsernameString(filter)))
+            return null;
+        
         String sql = "SELECT * FROM history WHERE username=(?) OR name=(?);";
         ArrayList <History> histories = new ArrayList <History> ();
 
@@ -338,6 +363,9 @@ public class SQLite implements Runnable{
     }
     
     public ArrayList <History> getHistoryByUsername(String username) {
+        if(!(validate.isValidUsernameString(username)))
+            return null;
+        
         String sql = "SELECT * FROM history WHERE username=(?);";
         ArrayList <History> histories = new ArrayList <History> ();
 
@@ -457,8 +485,8 @@ public class SQLite implements Runnable{
         return getUser(userID).getRole();
     }
 
-    public String getUserName(final int id) {
-        return getUser(id).getUsername();
+    public String getUserName(final int userID) {
+        return getUser(userID).getUsername();
     }
 
     /**
@@ -479,12 +507,62 @@ public class SQLite implements Runnable{
                 rs.getFloat("price"));
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return null;
         } finally{
             return product;    
         }
     }
     
+    public boolean isProductExists(String name){
+        if(!validate.isBasicChar(name))
+            return false;
+        return getProduct(name) != null;
+    }
+    
+    public boolean editProduct(final String username, final String originalItemname, final String itemname, final int quantity, final boolean offset, final double price){
+        if(!(validate.isValidUsernameString(username)&&validate.isBasicChar(itemname)&&validate.isBasicChar(originalItemname)))
+            return false;
+        return changeProduct(username, originalItemname, itemname, quantity, offset, price);
+    }
+    
+    private boolean changeProduct(String username, String originalItemname, String itemname, int quantity, boolean offset, double price){
+        if(!isUserExists(username))
+            return false;
+        if(!(isProductExists(itemname)&&isProductExists(originalItemname)))
+            return false;
+        Product copy = getProduct(itemname);
+        if(offset)
+            quantity = copy.getStock()+quantity;
+        String sql = "UPDATE product SET name=(?),stock=(?),price=(?) WHERE name=(?);";
+        int result = 0;
+        try (Connection conn = DriverManager.getConnection(driverURL)) {
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, toUTF_8(itemname));
+            pstmt.setString(2, quantity+"");
+            pstmt.setString(3, price+"");
+            pstmt.setString(4, toUTF_8(originalItemname));
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
+        } finally{
+            if (result != 0) {
+                logger.log("DB", "SYSTEM", "Edit Product Success!");
+                addLogs(new Logs("PRODUCT", username, "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + quantity));
+                return true;
+            } else {
+                logger.log("DB", "SYSTEM", "Edit Product Failed!");
+                return false;
+            }
+        }
+    }
+    
     public boolean buyProduct(final String itemname, final int quantity){
+        if(!validate.isBasicChar(itemname)){
+            logger.log("DB", "SYSTEM", "Buy Product FAILED (Invalid characters on input)");
+            return false;
+        }
         return purchaseProduct(itemname, quantity);
     }
     
@@ -502,11 +580,11 @@ public class SQLite implements Runnable{
             result = pstmt.executeUpdate();
         } catch (Exception ex) {
             logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
-            return true;
+            return false;
         } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Purchase Product Success!");
-                addLogs(new Logs("PRODUCT", "TRANSACTIONS", "Item: " + itemname + " Stock Change: " + copy.getStock() + "->" + (copy.getStock()-quantity)));
+                addLogs(new Logs("PRODUCT", "TRANSACTIONS", "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + (copy.getStock()-quantity)));
                 return true;
             } else {
                 logger.log("DB", "SYSTEM", "Purchase Product Failed!");
@@ -547,6 +625,10 @@ public class SQLite implements Runnable{
     }
 
     public boolean changePassword(final String username, final String password) {
+        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
+            logger.log("DB", "SYSTEM", "Change Password FAILED (Invalid characters on input)");
+            return false;
+        }
         final String username_UTF = toUTF_8(username);
         final String password_UTF = toUTF_8(password);
         if (!(validate.isValidUsernameString(username_UTF) && validate.isValidPasswordString(password_UTF)))
@@ -582,10 +664,18 @@ public class SQLite implements Runnable{
     }
 
     public boolean changeRole(final String username, final int role) {
+        if(!(validate.isValidUsernameString(username))){
+            logger.log("DB", "SYSTEM", "Change Role FAILED (Invalid characters on input)");
+            return false;
+        }
         return setRole(toUTF_8(username), role);
     }
     
     public boolean deleteUser(final String username){
+        if(!(validate.isValidUsernameString(username))){
+            logger.log("DB", "SYSTEM", "Delete User FAILED (Invalid characters on input)");
+            return false;
+        }
         return removeUser(toUTF_8(username));
     }
     
@@ -692,6 +782,8 @@ public class SQLite implements Runnable{
      * @return True of locked, false if otherwise.
      */
     public boolean isUserLocked(String username) {
+        if(getUser(username)==null)
+            return false;
         if (getUser(username).getLocked() != 0)
             return true;
         return false;
@@ -703,6 +795,12 @@ public class SQLite implements Runnable{
      * @return True if successfully locked, false if otherwise.
      */
     public boolean lockUser(String username) {
+        if(!(validate.isValidUsernameString(username))){
+            logger.log("DB", "SYSTEM", "Lock User FAILED (Invalid characters on input)");
+            return false;
+        }
+        if(!isUserExists(username))
+            return false;
         User u = getUser(username);
         if (u != null && u.getLocked() == 0) {
             return setRole(username, 1) && setLocked(username, 1);
@@ -716,6 +814,10 @@ public class SQLite implements Runnable{
      * @return True if successfully locked, false if otherwise.
      */
     public boolean unlockUser(String username) {
+        if(!(validate.isValidUsernameString(username))){
+            logger.log("DB", "SYSTEM", "Unlock User FAILED (Invalid characters on input)");
+            return false;
+        }
         User u = getUser(username);
         if (u != null && u.getLocked() != 0) {
             return setRole(username, 2) && setLocked(username, 0);

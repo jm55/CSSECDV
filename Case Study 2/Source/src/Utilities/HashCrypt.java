@@ -1,6 +1,5 @@
 package Utilities;
 
-import Controller.SQLite;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -122,7 +121,6 @@ public class HashCrypt {
         byte[] randomizer = new byte[4];
         new SecureRandom().nextBytes(randomizer);
         
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss::yyyy/MM/dd");
         String datetime = new SimpleDateFormat("HH:mm:ss::yyyy/MM/dd").format(new Date());
         datetime = getSHA256(datetime);
         //randomizer,date,id,uname,role,randomizer

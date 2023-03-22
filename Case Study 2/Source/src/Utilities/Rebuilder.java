@@ -78,6 +78,7 @@ public class Rebuilder {
         sqlite.addUser("staff", "Qw3rty_1234", 3);
         sqlite.addUser("client1", "Qw3rty_1234", 2);
         sqlite.addUser("client2", "P@ssw0rd_1234", 2);
+        sqlite.addUser("invalidClient", "invalidClient", 2);
         
         // Add sample history
         sqlite.addHistory("client1", "Antivirus", 1, "2019-04-03 14:30:00.000");

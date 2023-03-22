@@ -20,14 +20,12 @@ public class Validator {
     //Cred parameters
     public final int minLength = 8;
     public final int maxLength = 64;
-    public final String usernameRegex = "[a-z0-9_\\-.]+";
-    public final String passwordRegex = "[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+";
+    public final String usernameRegex = "^[a-z0-9_\\-.]+$";
+    public final String passwordRegex = "^[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/]+$";
+    public final String basicRegex = "^[A-Za-z0-9~`!@#$%^&*()_\\-+=\\{\\[\\}\\]|:\\<,>.?/ ]+$";
+    public final String timestampRegex = "^[0-9-.: ]+$";
     
     private final Dialogs dialog = new Dialogs();
-    
-    public boolean isSamePassword(){
-        return true;
-    }
     
     private void designer(JTextField component, String text){
         component.setSize(70, 600);
@@ -35,6 +33,16 @@ public class Validator {
         component.setBackground(new java.awt.Color(240, 240, 240));
         component.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         component.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 2, true), text, javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12)));
+    }
+    
+    public boolean isTimestamp(String timestamp){
+        System.out.println("TimeStamp: " + timestamp + " = " + Pattern.compile(timestampRegex).matcher(timestamp).matches());
+        return Pattern.compile(timestampRegex).matcher(timestamp).matches();
+    }
+    
+    public boolean isBasicChar(String input){
+        System.out.println("BasicChar: " + input + " = " + Pattern.compile(basicRegex).matcher(input).matches());
+        return Pattern.compile(basicRegex).matcher(input).matches();
     }
     
     public boolean confirmAdmin(String title, Main m, SQLite sqlite){

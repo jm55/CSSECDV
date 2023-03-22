@@ -41,7 +41,7 @@ public class MgmtUser extends javax.swing.JPanel {
         this.hs = new HashCrypt();
         this.validate = new Validator();
         this.sqlite = sqlite;
-        this.logger = new Logger(sqlite);
+        this.logger = new Logger(new SQLite());
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
         
