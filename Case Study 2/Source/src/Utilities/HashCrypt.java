@@ -104,6 +104,14 @@ public class HashCrypt {
         return encrypt(plainSession, sessionKey, sessionKeyLength, sessionIV);
     }
     
+    public String getGenericEncryption(final String plaintext){
+        return encrypt(plaintext, "a0b1c2d3e4f56789", 16, generateIv("a0b1c2d3e4f56789".substring(0,16)));
+    }
+    
+    public String getGenericDecryption(final String ciphertext){
+        return decrypt(ciphertext, "a0b1c2d3e4f56789", 16, generateIv("a0b1c2d3e4f56789".substring(0,16)));
+    }
+    
     /**
      * FOR USE IN SESSIONS
      * Get the decrypted session data

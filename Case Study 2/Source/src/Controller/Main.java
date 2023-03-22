@@ -12,6 +12,10 @@ public class Main {
     
     private static boolean rebuild = false;
     
+    /**
+     * Main Function of Program
+     * @param args Arguments for execution
+     */
     public static void main(String[] args) {
         System.out.println("Program Started at: " + new Date().toString());
         if(args.length > 0){
@@ -23,15 +27,22 @@ public class Main {
         new Main().init();
     }
     
+    /**
+     * Conducts final garbage collection and proper exit command.
+     */
     public void close(){
         System.out.println("Program Close called at: " + new Date().toString());
         System.gc();
         System.exit(0);
     }
     
+    /**
+     * Executes initialization calls for program.
+     */
     public void init(){
         sqlite = new SQLite();
-        
+       
+        //For sample database rebuild (if rebuild args was used).
         if(rebuild){
             Rebuilder r = new Rebuilder(this.sqlite);
             r.buildDB();
@@ -44,10 +55,17 @@ public class Main {
         System.gc();
     }
     
+    /**
+     * Set logged in session as null
+     */
     public void resetSession(){
         this.session = null;
     }
     
+    /**
+     * Create session given userID of user from DB.
+     * @param id UserID of the User logging in.
+     */
     public void createSession(final int id){
         if(sqlite.isUserExists(id)){
             this.session = hs.getEncryptedSession(hs.getSessionString(id, sqlite.getUserName(id), sqlite.getUserRole(id)));
@@ -56,6 +74,10 @@ public class Main {
         }
     }
     
+    /**
+     * Checks if there's a session set.
+     * @return 
+     */
     public boolean hasSession(){
         if(this.session == null || this.session == ""){
             return false;
@@ -64,25 +86,41 @@ public class Main {
         }
     }
     
+    /**
+     * Gets the role number of the user on session.
+     * @return Role Number of user logged in.
+     */
     public int getSessionRole(){
         if(this.session == "" || this.session == null)
             return Integer.valueOf(0).byteValue();
         return Integer.valueOf(Integer.parseInt(extractSessionValue()[4]));
     }
     
+    /**
+     * Gets the userID number of the user on session.
+     * @return UserID Number of user logged in.
+     */
     public int getSessionUserID(){
         if(this.session == "" || this.session == null)
             return Integer.valueOf(-1).byteValue();
         return Integer.valueOf(Integer.parseInt(extractSessionValue()[2]));
     }
     
+    /**
+     * Gets the userID number of the user on session.
+     * @return UserID Number of user logged in.
+     */
     public String getSessionUserName(){
         if(this.session == "" || this.session == null)
             return null;
         return extractSessionValue()[3];
     }
     
-    public String[] extractSessionValue(){
+    /**
+     * Gets the entire session data value as a String array.
+     * @return Array of session values containing: Randomizer, Date, UserID , Username, role, Randomizer
+     */
+    private String[] extractSessionValue(){
         if(this.session == "" || this.session == null)
             return null;
         return hs.getDecryptedSession(this.session).split(",");

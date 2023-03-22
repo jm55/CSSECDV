@@ -176,21 +176,29 @@ public class HashCryptTest {
     }
     
     public static void main(String[] args){
-        int cycles = 20;
         hs = new HashCrypt();
-        
-        long start = new Date().getTime();
-        for(int i = 0; i < cycles; i++){
-            System.out.println("TestID: " + i);
-            cycleTest();
+        String db = "jdbc:sqlite:" + "database.db";
+        String encrypted = hs.getGenericEncryption(db);
+        System.out.println(encrypted);
+        System.out.println(hs.getGenericDecryption(encrypted));
+        /*
+        {
+            int cycles = 20;
+            
+            long start = new Date().getTime();
+            for(int i = 0; i < cycles; i++){
+                System.out.println("TestID: " + i);
+                cycleTest();
+                System.gc();
+                System.out.println("");
+            }
+            System.out.println("Cycle Test Completed: " + ((new Date().getTime()-start)/1000) + "s");
+
+            cycles = 0;
+            start = 0;
             System.gc();
-            System.out.println("");
+            System.exit(0);
         }
-        System.out.println("Cycle Test Completed: " + ((new Date().getTime()-start)/1000) + "s");
-        
-        cycles = 0;
-        start = 0;
-        System.gc();
-        System.exit(0);
+        */
     }
 }

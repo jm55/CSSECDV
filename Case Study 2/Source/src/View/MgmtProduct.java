@@ -229,7 +229,7 @@ public class MgmtProduct extends javax.swing.JPanel {
                     if(currQuantity < quantity){
                         JOptionPane.showMessageDialog(null, "You're quantity of choice does not match\nthe available stock quantity.", "Invalid Quantity", JOptionPane.WARNING_MESSAGE);
                     }else{
-                        if(sqlite.buyProduct(item, quantity)){
+                        if(sqlite.buyProduct(this.m.getSessionUserName(), item, quantity)){
                             logger.log("PURCHASE", this.m.getSessionUserName(), "Item: " + item + " Quantity: " + quantity);
                             if(quantity > 0)
                                 quantity *= -1;
@@ -270,8 +270,9 @@ public class MgmtProduct extends javax.swing.JPanel {
                 if(new Dialogs().yesno("A product was found to have the same name, do you want to overwrite this instead?", "Add Product")){
                     try{
                         if(sqlite.editProduct(this.m.getSessionUserName(), nameFld.getText(), nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText()))){
-                            logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
+                            logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Success");
                             new Dialogs().notifyDialog("Add New Product", "Add Product", true);
+                            sqlite.newHistory(this.m.getSessionUserName(), nameFld.getText(), Integer.parseInt(stockFld.getText()));
                         }else{
                             logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
                             new Dialogs().notifyDialog("Add New Product", "Add Product", false);
@@ -323,6 +324,7 @@ public class MgmtProduct extends javax.swing.JPanel {
                     if(sqlite.editProduct(this.m.getSessionUserName(), originalItemname, nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText()))){
                         logger.log("PRODUCT", this.m.getSessionUserName(), "Product Edit Success");
                         new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", true);
+                        sqlite.newHistory(this.m.getSessionUserName(), nameFld.getText(), Integer.parseInt(stockFld.getText()));
                     }else{
                         logger.log("PRODUCT", this.m.getSessionUserName(), "Product Edit Failed");
                         new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", false);
@@ -346,6 +348,7 @@ public class MgmtProduct extends javax.swing.JPanel {
                 if(sqlite.deleteProduct(target)){
                     logger.log("NOTICE", this.m.getSessionUserName(), "Product (" + target + " ) Delete Success.");
                     new Dialogs().notifyDialog("Delete Product Attempt", "Delete Product", true);
+                    sqlite.newHistory(this.m.getSessionUserName(), target, 0);
                 }else{
                     logger.log("NOTICE", this.m.getSessionUserName(), "Product (" + target + " ) Delete Failed.");
                     new Dialogs().notifyDialog("Delete Product Attempt", "Delete Product", false);

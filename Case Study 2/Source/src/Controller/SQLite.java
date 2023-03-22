@@ -21,17 +21,28 @@ import java.util.Date;
 public class SQLite implements Runnable{
 
     private int DEBUG_MODE = 0;
-    private String driverURL = "jdbc:sqlite:" + "database.db";
+    private String driverURL = "NEFqXZMFhXkd3cuBJK/tEMynO2irnrnfKKzdRLiw2oo=";
     private Validator validate;
     private Logger logger;
     private HashCrypt hs;
+    
+    /**
+     * Constructor for SQLite.
+     * Runs thread for SQLite object every instantiate call.
+     */
     public SQLite() {
         run();
         this.hs = new HashCrypt();
+        this.driverURL = hs.getGenericDecryption(driverURL);
         this.validate = new Validator();
         this.logger = new Logger(this);
     }
 
+    /**
+     * Set DEBUG_MODE of SQLite.
+     * Modifies the output of the getLogs() function.
+     * @param debug True to turn on DEBUG_MODE, false if otherwise.
+     */
     public void setDebug(final boolean debug){
         if(debug)
             this.DEBUG_MODE = 1;
@@ -39,10 +50,17 @@ public class SQLite implements Runnable{
             this.DEBUG_MODE = 0;
     }
     
+    /**
+     * Get the debug mode value.
+     * @return Boolean value of current DEBUG_MODE state.
+     */
     public int getDebug(){
         return this.DEBUG_MODE;
     }
     
+    /**
+     * Creates a new database from scratch.
+     */
     public void createNewDatabase() {
         try (Connection conn = DriverManager.getConnection(driverURL)) {
             if (conn != null) {
@@ -54,6 +72,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Creates History table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void createHistoryTable() {
         String sql = "CREATE TABLE IF NOT EXISTS history (\n" +
             " id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -71,6 +93,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Creates Logs table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void createLogsTable() {
         String sql = "CREATE TABLE IF NOT EXISTS logs (\n" +
             " id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -88,6 +114,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Creates Product table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void createProductTable() {
         String sql = "CREATE TABLE IF NOT EXISTS product (\n" +
             " id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -104,6 +134,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Creates User table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void createUserTable() {
         String sql = "CREATE TABLE IF NOT EXISTS users (\n" +
             " id INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -122,6 +156,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Drops History table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void dropHistoryTable() {
         String sql = "DROP TABLE IF EXISTS history;";
 
@@ -133,6 +171,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Drops Logs table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void dropLogsTable() {
         String sql = "DROP TABLE IF EXISTS logs;";
 
@@ -144,6 +186,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Drops Products table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void dropProductTable() {
         String sql = "DROP TABLE IF EXISTS product;";
 
@@ -155,6 +201,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Drops User table for database from scratch.
+     * Database must be created prior to this function call.
+     */
     public void dropUserTable() {
         String sql = "DROP TABLE IF EXISTS users;";
 
@@ -166,6 +216,14 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Create new History entry for History table.
+     * @param username Username of user creating history.
+     * @param name Name of item/product 
+     * @param stock Amount that was added/removed.
+     * @param timestamp Date & Time of the event.
+     * @return True if writing was successful, false if otherwise.
+     */
     public boolean newHistory(final String username, final String name, final int stock, final String timestamp){
         if(!(validate.isBasicChar(username)&&validate.isBasicChar(name)&&validate.isTimestamp(timestamp))){
             logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
@@ -174,6 +232,14 @@ public class SQLite implements Runnable{
             return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
     }
     
+    /**
+     * Create new History entry for History table.
+     * The timestamp will automatically be added using current system time.
+     * @param username Username of user creating history.
+     * @param name Name of item/product 
+     * @param stock Amount that was added/removed.
+     * @return True if writing was successful, false if otherwise.
+     */
     public boolean newHistory(final String username, final String name, final int stock){
         if(!(validate.isBasicChar(username)&&validate.isBasicChar(name))){
             logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
@@ -182,6 +248,14 @@ public class SQLite implements Runnable{
             return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
     }
     
+    /**
+     * Conducts the actual SQL execution of adding History.
+     * @param username Username of user creating history.
+     * @param name Name of item/product 
+     * @param stock Amount that was added/removed.
+     * @param timestamp Date & Time of the event.
+     * @return True if writing was successful, false if otherwise.
+     */
     private boolean addHistory(final String username, final String name, final int stock, final String timestamp) {
         if(!isUserExists(toUTF_8(username)))
             return false;
@@ -210,22 +284,35 @@ public class SQLite implements Runnable{
         }
     }
     
+    /**
+     * Creates a new Logs item to DB.
+     * @param l New log in Logs object form.
+     * @return True if successful, false if otherwise.
+     */
     public boolean newLog(Logs l){
-        return addLogs(l);
-    }
-    
-    public boolean newLog(String event, String username, String desc, String timestamp){
-        return addLogs(event, username, desc, timestamp);
+        return addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
     }
     
     /**
-     * Add logs using Logs object as a parameter.
-     * @param l Logs object to be logged.
+     * Creates a new Logs item to DB.
+     * @param event Category of event
+     * @param username Who created the event.
+     * @param desc More details regarding the event
+     * @param timestamp Date & Time the event occurred.
+     * @return True if successful, false if otherwise.
      */
-    private boolean addLogs(Logs l) {
-        return addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
+    public boolean newLog(String event, String username, String desc, String timestamp){
+        return addLogs(event, username, desc, timestamp);
     }
 
+    /**
+     * Conducts the actual adding of new log to DB.
+     * @param event Category of event
+     * @param username Who created the event.
+     * @param desc More details regarding the event
+     * @param timestamp Date & Time the event occurred.
+     * @return True if successful, false if otherwise.  
+     */
     private boolean addLogs(String event, String username, String desc, String timestamp) {
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
         int result = 0;
@@ -251,6 +338,11 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Add new product.
+     * @param p New product to be added via a Product object.
+     * @return True if successful, false if otherwise.
+     */
     public boolean newProduct(Product p){
         if(!p.isValid()){
             logger.log("DB", "SYSTEM", "Add product FAILED (Invalid characters on input)");
@@ -259,6 +351,13 @@ public class SQLite implements Runnable{
             return addProduct(p.getName(), p.getStock(), p.getPrice());
     }
     
+    /**
+     * Add new product.
+     * @param name Name of product
+     * @param stock Stock of product
+     * @param price Price of product
+     * @return True if successful, false if otherwise.
+     */
     public boolean newProduct(String name, int stock, double price){
         if(!validate.isBasicChar(name)){
             logger.log("DB", "SYSTEM", "Add product FAILED (Invalid characters on input)");
@@ -267,6 +366,13 @@ public class SQLite implements Runnable{
         return addProduct(name, stock, price);
     }
     
+    /**
+     * Conducts actual adding of product to DB.
+     * @param name Name of product
+     * @param stock Stock of product
+     * @param price Price of product
+     * @return True if successful, false if otherwise.
+     */
     private boolean addProduct(String name, int stock, double price) {
         String sql = "INSERT INTO product(name,stock,price) VALUES(?,?,?)";
         int result = 0;
@@ -291,10 +397,24 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Add new user
+     * Role set to 2.
+     * @param username Username of new user
+     * @param password Password of new user (must be encrypted hash)
+     * @return True if successful, false if otherwise.
+     */
     public boolean newUser(String username, String password){
         return newUser(username, password, 2);
     }
     
+    /**
+     * Add new user
+     * @param username Username of new user
+     * @param password Password of new user (must be encrypted hash)
+     * @param role Role of the user.
+     * @return True if successful, false if otherwise.
+     */
     public boolean newUser(final String username, final String password, final int role){
         if(!(validate.isRegisterValid(username, password, password)))
             return false;
@@ -302,6 +422,13 @@ public class SQLite implements Runnable{
             return addUser(username, password, role);
     }
     
+    /**
+     * Conducts actual writing of new user to DB.
+     * @param username Username of new user
+     * @param password Password of new user (must be encrypted hash)
+     * @param role Role of the user.
+     * @return True if successful, false if otherwise.
+     */
     private boolean addUser(String username, String password, int role) {
         if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
             logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
@@ -340,6 +467,10 @@ public class SQLite implements Runnable{
         }
     }
 
+    /**
+     * Gets all History in DB.
+     * @return All history in ArrayList(History) format
+     */
     public ArrayList <History> getHistory() {
         String sql = "SELECT id, username, name, stock, timestamp FROM history";
         ArrayList <History> histories = new ArrayList <History> ();
@@ -359,6 +490,11 @@ public class SQLite implements Runnable{
         return histories;
     }
     
+    /**
+     * Gets History items in DB by specific filter (username/product name).
+     * @param filter Filter for specific history selection and return.
+     * @return Selected History in ArrayList(History) format
+     */
     public ArrayList <History> getHistory(String filter) {
         if(!(validate.isValidUsernameString(filter)))
             return null;
@@ -385,6 +521,11 @@ public class SQLite implements Runnable{
         return histories;
     }
     
+    /**
+     * Gets History items in DB by specific user.
+     * @param username Filter for specific history selection and return.
+     * @return Selected History in ArrayList(History) format
+     */
     public ArrayList <History> getHistoryByUsername(String username) {
         if(!(validate.isValidUsernameString(username)))
             return null;
@@ -410,6 +551,10 @@ public class SQLite implements Runnable{
         return histories;
     }
 
+    /**
+     * Gets all logs in DB.
+     * @return ArrayList of Logs object.
+     */
     public ArrayList <Logs> getLogs() {
         String sql = "SELECT id, event, username, desc, timestamp FROM logs WHERE username!='SYSTEM'";
         
@@ -432,6 +577,10 @@ public class SQLite implements Runnable{
         return logs;
     }
 
+    /**
+     * Gets all products in DB.
+     * @return ArrayList of Product objects
+     */
     public ArrayList <Product> getProduct() {
         String sql = "SELECT id, name, stock, price FROM product";
         ArrayList <Product> products = new ArrayList <Product> ();
@@ -452,6 +601,10 @@ public class SQLite implements Runnable{
         return products;
     }
 
+    /**
+     * Gets all users in DB.
+     * @return ArrayList of User objects.
+     */
     public ArrayList <User> getUsers() {
         String sql = "SELECT id, username, password, role, locked FROM users";
         ArrayList <User> users = new ArrayList <User> ();
@@ -472,9 +625,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Get a specific user by username
-     * @param uname Username of user in DB.
-     * @return User object that matches username, null if nothing was found.
+     * Gets a specific user from DB
+     * @param username Username of target user.
+     * @return User object of the target user.
      */
     private User getUser(final String username) {
         ArrayList <User> users = getUsers();
@@ -486,9 +639,9 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Get a specific user by userID.
-     * @param userID UserID of user in DB.
-     * @return User object that matches userID, null if nothing was found.
+     * Gets a specific user from DB.
+     * @param userID UserID of the target user.
+     * @return User object of the target user.
      */
     private User getUser(final int userID) {
         ArrayList <User> users = getUsers();
@@ -500,27 +653,37 @@ public class SQLite implements Runnable{
     }
 
     /**
-     * Get user's role number
-     * @param userID
-     * @return Role number of user.
+     * Gets the role of a user.
+     * @param userID UserID of the target user.
+     * @return Role value of the target user.
      */
     public int getUserRole(final int userID) {
         return getUser(userID).getRole();
     }
 
+    /**
+     * Gets the username of a user
+     * @param userID UserId of the target user.
+     * @return Username of the target user.
+     */
     public String getUserName(final int userID) {
         return getUser(userID).getUsername();
     }
 
     /**
-     * Gets userID of user specified by username.
-     * @param username
-     * @return ID of a given username, null if not found.
+     * Gets the UserID of a user.
+     * @param username Username of the target user.
+     * @return UserID of the target user.
      */
     public int getUserID(final String username) {
         return getUser(username).getId();
     }
 
+    /**
+     * Gets a Product.
+     * @param name Name of product.
+     * @return Product object of the target Product.
+     */
     public Product getProduct(String name) {
         String sql = "SELECT name, stock, price FROM product WHERE name='" + name + "';";
         Product product = null;
@@ -536,18 +699,43 @@ public class SQLite implements Runnable{
         }
     }
     
+    /**
+     * Checks if a product exists
+     * @param name Name of product.
+     * @return True if it exists, false if otherwise.
+     */
     public boolean isProductExists(String name){
         if(!validate.isBasicChar(name))
             return false;
         return getProduct(name) != null;
     }
     
+    /**
+     * Edit a product.
+     * @param username User conducting edit
+     * @param originalItemname Original name of product
+     * @param itemname New name of product (should it ever change). Set value as the same as originalItemname as initial value.
+     * @param quantity Quantity of product
+     * @param offset True if value of quantity will be added/subtracted, false if new quantity value is to be set (i.e., overwrite).
+     * @param price Price of Product.
+     * @return True if successful, false if otherwise.
+     */
     public boolean editProduct(final String username, final String originalItemname, final String itemname, final int quantity, final boolean offset, final double price){
         if(!(validate.isValidUsernameString(username)&&validate.isBasicChar(itemname)&&validate.isBasicChar(originalItemname)))
             return false;
         return changeProduct(username, originalItemname, itemname, quantity, offset, price);
     }
     
+    /**
+     * Conducts actual writing of edits on a Product.
+     * @param username User conducting edit
+     * @param originalItemname Original name of product
+     * @param itemname New name of product (should it ever change). Set value as the same as originalItemname as initial value.
+     * @param quantity Quantity of product
+     * @param offset True if value of quantity will be added/subtracted, false if new quantity value is to be set (i.e., overwrite).
+     * @param price Price of Product.
+     * @return True if successful, false if otherwise.
+     */
     private boolean changeProduct(String username, String originalItemname, String itemname, int quantity, boolean offset, double price){
         if(!isUserExists(username))
             return false;
@@ -572,7 +760,7 @@ public class SQLite implements Runnable{
         } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Edit Product Success!");
-                addLogs(new Logs("PRODUCT", username, "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + quantity));
+                newLog(new Logs("PRODUCT", username, "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + quantity));
                 return true;
             } else {
                 logger.log("DB", "SYSTEM", "Edit Product Failed!");
@@ -581,15 +769,21 @@ public class SQLite implements Runnable{
         }
     }
     
-    public boolean buyProduct(final String itemname, final int quantity){
-        if(!validate.isBasicChar(itemname)){
+    /**
+     * Buy a product.
+     * @param itemname Name of product
+     * @param quantity
+     * @return 
+     */
+    public boolean buyProduct(final String username, final String itemname, final int quantity){
+        if(!validate.isBasicChar(itemname) || !validate.isValidUsernameString(username) || !isUserExists(username)){
             logger.log("DB", "SYSTEM", "Buy Product FAILED (Invalid characters on input)");
             return false;
         }
-        return purchaseProduct(itemname, quantity);
+        return purchaseProduct(username, itemname, quantity);
     }
     
-    private boolean purchaseProduct(final String itemname, final int quantity){
+    private boolean purchaseProduct(final String username, final String itemname, final int quantity){
         Product copy = getProduct(itemname);
         if(copy == null || quantity <= 0)
             return false;
@@ -607,7 +801,7 @@ public class SQLite implements Runnable{
         } finally{
             if (result != 0) {
                 logger.log("DB", "SYSTEM", "Purchase Product Success!");
-                addLogs(new Logs("PRODUCT", "TRANSACTIONS", "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + (copy.getStock()-quantity)));
+                newLog(new Logs("PRODUCT", username, "Item: " + itemname + " Stock Change (Edit): " + copy.getStock() + "->" + (copy.getStock()-quantity)));
                 return true;
             } else {
                 logger.log("DB", "SYSTEM", "Purchase Product Failed!");

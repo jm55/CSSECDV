@@ -55,14 +55,19 @@ public class MgmtHistory extends javax.swing.JPanel {
             for(int nCtr = 0; nCtr < history.size(); nCtr++){
                 Product product = sqlite.getProduct(history.get(nCtr).getName());
                 int s = history.get(nCtr).getStock();
-                if(s < 0 && this.m.getSessionRole()==2)
+                int total = (int)product.getPrice();
+                if(s < 0 && this.m.getSessionRole()==2){
                     s *= -1;
+                    total *= s;
+                }else{
+                    total *= s;
+                }
                 tableModel.addRow(new Object[]{
                     history.get(nCtr).getUsername(), 
                     history.get(nCtr).getName(),
                     s,
                     product.getPrice(), 
-                    product.getPrice() * history.get(nCtr).getStock(), 
+                    total, 
                     history.get(nCtr).getTimestamp()
                 });
             }
