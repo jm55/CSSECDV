@@ -24,13 +24,17 @@ public class ValidatorTest {
         System.out.println("Invalid: " + !(validate.isBasicChar(basicString)&&validate.isBasicChar(invalidString)&&validate.isTimestamp(validTimestamp)));
         System.out.println("Invalid: " + !(validate.isBasicChar(basicString)&&validate.isBasicChar(basicString)&&validate.isTimestamp(invalidTimestamp)));
         
-        String username = "useraccount";
+        String username = "SYSTEM";
         String password = "Password@123";
+        boolean usernameValid = validate.isValidUsernameString(username);
+        boolean passwordValid = validate.isValidPasswordString(password);
         boolean valid = validate.isRegisterValid(username, password, password);
         boolean withinLimit = validate.credentialWithinLimit(username, password, password);
         
         
         System.out.println(username + ":" + password);
+        System.out.println("usernameValid: " + usernameValid);
+        System.out.println("passwordValid: " + passwordValid);
         System.out.println("Valid: " + valid);
         System.out.println("Within Limit: " + withinLimit);
     }

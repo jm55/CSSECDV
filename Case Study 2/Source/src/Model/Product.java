@@ -5,6 +5,9 @@
  */
 package Model;
 
+import Controller.SQLite;
+import Utilities.Validator;
+
 /**
  *
  * @author beepxD
@@ -59,5 +62,11 @@ public class Product {
 
     public void setPrice(float price) {
         this.price = price;
+    }
+    
+    public boolean isValid(){
+        Validator v = new Validator();
+        SQLite sql = new SQLite();
+        return v.isBasicChar(this.name) == sql.isProductExists(this.name);
     }
 }

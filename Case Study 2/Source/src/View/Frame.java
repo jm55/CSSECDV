@@ -209,7 +209,7 @@ public class Frame extends javax.swing.JFrame {
     }//GEN-LAST:event_logoutBtnActionPerformed
 
     private void logoutAction(){
-        main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Logging out..."));
+        main.sqlite.newLog(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Logging out..."));
         loginNav();
         this.main.resetSession();
     }
@@ -274,7 +274,7 @@ public class Frame extends javax.swing.JFrame {
         this.main.createSession(userID);
         
         //Log the successful login event
-        this.main.sqlite.addLogs(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged in"));
+        this.main.sqlite.newLog(new Logs("LOGIN", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged in"));
         
         frameView.show(Container, "homePnl");
         contentControl();
@@ -316,7 +316,7 @@ public class Frame extends javax.swing.JFrame {
         System.gc();
         resetSideBarButtons();
         if(main.getSessionUserID() != -1){
-            main.sqlite.addLogs(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged out"));
+            main.sqlite.newLog(new Logs("LOGOUT", main.sqlite.getUserName(main.getSessionUserID()),"Successfully logged out"));
             main.resetSession();
         }
         this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);

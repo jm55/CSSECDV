@@ -7,6 +7,7 @@ package Model;
 
 import Controller.SQLite;
 import Utilities.Logger;
+import Utilities.Validator;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -93,4 +94,11 @@ public class Logs {
         this.timestamp = timestamp;
     }
     
+    public boolean isValid(){
+        Validator v = new Validator();
+        if((v.isTimestamp(this.timestamp.toString())&&v.isValidUsernameString(this.username)&&v.isBasicChar(this.event)&&v.isBasicChar(this.desc)))
+            return true;
+        else
+            return false;
+    }
 }

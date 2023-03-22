@@ -108,7 +108,7 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
     
     private void registerAction(SQLite sql){
-        if(sql.addUser(getUsername(), getPassword(), 2))
+        if(sql.newUser(getUsername(), getPassword(), 2))
             new Dialogs().notifyDialog("Account Registration", "Register", true);
         else
             new Dialogs().notifyDialog("Account Registration", "Register", false);
@@ -129,11 +129,11 @@ public class Register extends javax.swing.JPanel {
             SQLite sql = new SQLite();
             if (sql.isUserExists(getUsername())){
                 userExists();
-                sql.addLogs(registerLog("New user attempted to register using unavailable username: " + getUsername()));
+                sql.newLog(registerLog("New user attempted to register using unavailable username: " + getUsername()));
             }else{
                 if(!getUsername().equals(getPassword())){
                     registerAction(sql);
-                    sql.addLogs(registerLog("New user registered as " + getUsername()));
+                    sql.newLog(registerLog("New user registered as " + getUsername()));
                     clearInputs();
                     frame.loginNav();
                 }else

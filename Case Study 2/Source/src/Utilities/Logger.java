@@ -28,7 +28,7 @@ public class Logger {
     
     public void log(String event, String user, String desc){
         printOnly(event, user, desc);
-        sql.addLogs(new Logs(event, user, desc));
+        sql.newLog(new Logs(event, user, desc));
     }
     
     private String printableLogs(Logs l){

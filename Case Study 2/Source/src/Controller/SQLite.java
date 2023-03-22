@@ -166,20 +166,23 @@ public class SQLite implements Runnable{
         }
     }
 
-    public boolean addHistory(final String username, final String name, final int stock){
-        if(!(validate.isBasicChar(username)&&validate.isBasicChar(name))){
-            logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
-            return false;
-        }
-        return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
-    }
-    
-    public boolean addHistory(final String username, final String name, final int stock, final String timestamp) {
+    public boolean newHistory(final String username, final String name, final int stock, final String timestamp){
         if(!(validate.isBasicChar(username)&&validate.isBasicChar(name)&&validate.isTimestamp(timestamp))){
             logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
             return false;
-        }
-        
+        }else
+            return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
+    }
+    
+    public boolean newHistory(final String username, final String name, final int stock){
+        if(!(validate.isBasicChar(username)&&validate.isBasicChar(name))){
+            logger.log("DB", "SYSTEM", "Add History FAILED (Invalid characters on input)");
+            return false;
+        }else
+            return addHistory(username, name, stock, new Timestamp(new Date().getTime()).toString());
+    }
+    
+    private boolean addHistory(final String username, final String name, final int stock, final String timestamp) {
         if(!isUserExists(toUTF_8(username)))
             return false;
         
@@ -206,19 +209,24 @@ public class SQLite implements Runnable{
             }
         }
     }
-
+    
+    public boolean newLog(Logs l){
+        return addLogs(l);
+    }
+    
+    public boolean newLog(String event, String username, String desc, String timestamp){
+        return addLogs(event, username, desc, timestamp);
+    }
+    
     /**
      * Add logs using Logs object as a parameter.
      * @param l Logs object to be logged.
      */
-    public boolean addLogs(Logs l) {
+    private boolean addLogs(Logs l) {
         return addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
     }
 
-    public boolean addLogs(String event, String username, String desc, String timestamp) {
-        if(!(validate.isBasicChar(event)&&validate.isBasicChar(username)&&validate.isBasicChar(desc)&&validate.isTimestamp(timestamp))){
-            return false;
-        }
+    private boolean addLogs(String event, String username, String desc, String timestamp) {
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -243,11 +251,23 @@ public class SQLite implements Runnable{
         }
     }
 
-    public boolean addProduct(String name, int stock, double price) {
+    public boolean newProduct(Product p){
+        if(!p.isValid()){
+            logger.log("DB", "SYSTEM", "Add product FAILED (Invalid characters on input)");
+            return false;
+        }else
+            return addProduct(p.getName(), p.getStock(), p.getPrice());
+    }
+    
+    public boolean newProduct(String name, int stock, double price){
         if(!validate.isBasicChar(name)){
             logger.log("DB", "SYSTEM", "Add product FAILED (Invalid characters on input)");
             return false;
         }
+        return addProduct(name, stock, price);
+    }
+    
+    private boolean addProduct(String name, int stock, double price) {
         String sql = "INSERT INTO product(name,stock,price) VALUES(?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
@@ -271,15 +291,18 @@ public class SQLite implements Runnable{
         }
     }
 
-    public boolean addUser(String username, String password) {
-        if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
-            logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
-            return false;
-        }
-        return addUser(username, password, 1);
+    public boolean newUser(String username, String password){
+        return newUser(username, password, 2);
     }
-
-    public boolean addUser(String username, String password, int role) {
+    
+    public boolean newUser(final String username, final String password, final int role){
+        if(!(validate.isRegisterValid(username, password, password)))
+            return false;
+        else
+            return addUser(username, password, role);
+    }
+    
+    private boolean addUser(String username, String password, int role) {
         if(!(validate.isValidUsernameString(username)&&validate.isValidPasswordString(password))){
             logger.log("DB", "SYSTEM", "Add User FAILED (Invalid characters on input)");
             return false;

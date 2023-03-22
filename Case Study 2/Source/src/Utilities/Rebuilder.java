@@ -68,23 +68,23 @@ public class Rebuilder {
         sqlite.createUserTable();
 
         // Add sample product
-        sqlite.addProduct("Antivirus", 5, 500.0);
-        sqlite.addProduct("Firewall", 3, 1000.0);
-        sqlite.addProduct("Scanner", 10, 100.0);
+        sqlite.newProduct("Antivirus", 5, 500.0);
+        sqlite.newProduct("Firewall", 3, 1000.0);
+        sqlite.newProduct("Scanner", 10, 100.0);
 
         // Add sample users (hashed once function is executed)
-        sqlite.addUser("admin", "Qw3rty_1234" , 5);
-        sqlite.addUser("manager", "Qw3rty_1234", 4);
-        sqlite.addUser("staff", "Qw3rty_1234", 3);
-        sqlite.addUser("client1", "Qw3rty_1234", 2);
-        sqlite.addUser("client2", "P@ssw0rd_1234", 2);
-        sqlite.addUser("invalidClient", "invalidClient", 2);
+        sqlite.newUser("admin", "Qw3rty_1234" , 5);
+        sqlite.newUser("manager", "Qw3rty_1234", 4);
+        sqlite.newUser("staff", "Qw3rty_1234", 3);
+        sqlite.newUser("client1", "Qw3rty_1234", 2);
+        sqlite.newUser("client2", "P@ssw0rd_1234", 2);
+        sqlite.newUser("invalidClient", "invalidClient", 2);
         
         // Add sample history
-        sqlite.addHistory("client1", "Antivirus", 1, "2019-04-03 14:30:00.000");
-        sqlite.addHistory("client1", "Firewall", 1, "2019-04-03 14:30:01.000");
-        sqlite.addHistory("client2", "Scanner", 1, "2019-04-03 14:30:02.000");
-        sqlite.addHistory("client1", "Scanner", 1, "2019-04-03 14:30:02.000");
+        sqlite.newHistory("client1", "Antivirus", 1, "2019-04-03 14:30:00.000");
+        sqlite.newHistory("client1", "Firewall", 1, "2019-04-03 14:30:01.000");
+        sqlite.newHistory("client2", "Scanner", 1, "2019-04-03 14:30:02.000");
+        sqlite.newHistory("client1", "Scanner", 1, "2019-04-03 14:30:02.000");
         
         System.out.println("");
         System.out.println("<<< HISTORY >>>");

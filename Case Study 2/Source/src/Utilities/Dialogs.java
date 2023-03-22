@@ -28,5 +28,7 @@ public class Dialogs {
         }
         JOptionPane.showMessageDialog(null, message + " " + state, title, JOptionPane.INFORMATION_MESSAGE);
     }
-    
+    public boolean yesno(String message, String title){
+        return JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+    }
 }

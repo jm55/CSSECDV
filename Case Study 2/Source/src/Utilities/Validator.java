@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Utilities;
 
 import Controller.Main;
@@ -36,12 +32,10 @@ public class Validator {
     }
     
     public boolean isTimestamp(String timestamp){
-        System.out.println("TimeStamp: " + timestamp + " = " + Pattern.compile(timestampRegex).matcher(timestamp).matches());
         return Pattern.compile(timestampRegex).matcher(timestamp).matches();
     }
     
     public boolean isBasicChar(String input){
-        System.out.println("BasicChar: " + input + " = " + Pattern.compile(basicRegex).matcher(input).matches());
         return Pattern.compile(basicRegex).matcher(input).matches();
     }
     
@@ -122,6 +116,8 @@ public class Validator {
     }
     
     public boolean isValidUsernameString(String username){
+        if(username == "SYSTEM")
+                return true;
         return Pattern.compile(usernameRegex).matcher(username).matches() && (username.length() <= maxLength);
     }
     

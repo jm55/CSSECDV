@@ -123,10 +123,10 @@ public class Login extends javax.swing.JPanel {
             invalidLogin();
         }else{
             sql = new SQLite();
-            sql.addLogs(loginLog(getUsername(), "Logging in..."));
+            sql.newLog(loginLog(getUsername(), "Logging in..."));
             if (sql.isUserExists(getUsername())){ //Verify user existence
                 if(sql.isUserLocked(getUsername())){
-                    sql.addLogs(loginLog(getUsername(), "Locked account attempted to login"));
+                    sql.newLog(loginLog(getUsername(), "Locked account attempted to login"));
                     invalidLogin();
                 }else{ //User is not locked
                     if(sql.authenticateUser(getUsername(), getPassword())){ //Valid username and password.
@@ -136,18 +136,18 @@ public class Login extends javax.swing.JPanel {
                         //frame.main.createSession(id);
                         frame.mainNav(id);
                     }else{ //Invalid password.
-                        sql.addLogs(loginLog(getUsername(), "Failed attempt to login"));
+                        sql.newLog(loginLog(getUsername(), "Failed attempt to login"));
                         invalidLogin();
                         loginAttempt++;
                         if(loginAttempt >= loginAttemptLimit)
                             if(sql.lockUser(getUsername()))
-                                sql.addLogs(loginLog(getUsername(), "Account locked due to excessive login attempts"));
+                                sql.newLog(loginLog(getUsername(), "Account locked due to excessive login attempts"));
                     }
                 }
             }else{ 
                 //No user found!(assumes it meets the field validation conditions)
                 invalidLogin();
-                sql.addLogs(loginLog(usernameFld.getText(), "Unknown account attempted to login"));
+                sql.newLog(loginLog(usernameFld.getText(), "Unknown account attempted to login"));
             }
             sql = null;
         }

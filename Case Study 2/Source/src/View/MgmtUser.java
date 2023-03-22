@@ -228,11 +228,11 @@ public class MgmtUser extends javax.swing.JPanel {
                 if(result != null){
                     int targetRole = Integer.parseInt(result.split("-")[0]);
                     if(this.sqlite.changeRole(targetUser, targetRole)){
-                        this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "EDIT ROLE: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
+                        this.sqlite.newLog(new Logs("NOTICE", this.m.getSessionUserName(), "EDIT ROLE: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
                         dialog.notifyDialog("Change Role", "User Management", true);
                     }
                     else{
-                        this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "EDIT ROLE FAILED: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
+                        this.sqlite.newLog(new Logs("ERROR", this.m.getSessionUserName(), "EDIT ROLE FAILED: " + targetUser + " ROLE=" + tableModel.getValueAt(table.getSelectedRow(), 2) + "->" + targetRole));
                         dialog.notifyDialog("Change Role", "User Management", false);
                     }
                     reloadTable();
@@ -254,12 +254,12 @@ public class MgmtUser extends javax.swing.JPanel {
                 if(validate.confirmAdmin("Delete User", this.m, this.sqlite)){
                     //ADD LOGGING AFTER USER-IMPOSED DELETION
                     if(this.sqlite.deleteUser(targetUser)){
-                        this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
+                        this.sqlite.newLog(new Logs("NOTICE",this.m.getSessionUserName(), "DELETE: " + targetUser));
                         dialog.notifyDialog("Delete User", "User Management", true);
                     }
                         
                     else{
-                        this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "DELETE FAILED: "+ targetUser));
+                        this.sqlite.newLog(new Logs("ERROR",this.m.getSessionUserName(), "DELETE FAILED: "+ targetUser));
                         dialog.notifyDialog("Delete User", "User Management", false);
                     }
                 }else
@@ -284,18 +284,18 @@ public class MgmtUser extends javax.swing.JPanel {
                     String target = (String)tableModel.getValueAt(table.getSelectedRow(), 0);
                     if(toLock){
                         if(this.sqlite.lockUser(target)){
-                            this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "LOCK: " + target));
+                            this.sqlite.newLog(new Logs("NOTICE",this.m.getSessionUserName(), "LOCK: " + target));
                             dialog.notifyDialog("User Locking", "User Management", true);
                         }else{
-                            this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "LOCK FAILED: "+ target));
+                            this.sqlite.newLog(new Logs("ERROR",this.m.getSessionUserName(), "LOCK FAILED: "+ target));
                             dialog.notifyDialog("User Locking", "User Management", false);
                         }
                     }else{
                         if(this.sqlite.unlockUser(target)){
-                            this.sqlite.addLogs(new Logs("NOTICE",this.m.getSessionUserName(), "UNLOCK: " + target));
+                            this.sqlite.newLog(new Logs("NOTICE",this.m.getSessionUserName(), "UNLOCK: " + target));
                             dialog.notifyDialog("User Unlocking", "User Management", true);
                         }else{
-                            this.sqlite.addLogs(new Logs("ERROR",this.m.getSessionUserName(), "UNLOCK FAILED: " + target));
+                            this.sqlite.newLog(new Logs("ERROR",this.m.getSessionUserName(), "UNLOCK FAILED: " + target));
                             dialog.notifyDialog("User Unlocking", "User Management", false);
                         }
                     }
@@ -340,10 +340,10 @@ public class MgmtUser extends javax.swing.JPanel {
                 }else{
                     if(this.sqlite.authenticateUser(m.getSessionUserName(), new String(adminPass.getPassword()))){
                         if(this.sqlite.changePassword(uname, new String(password.getPassword()))){
-                            this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "PW CHANGE: " + uname));
+                            this.sqlite.newLog(new Logs("NOTICE", this.m.getSessionUserName(), "PW CHANGE: " + uname));
                             dialog.notifyDialog("Password Change", "User Management", true);
                         }else{
-                            this.sqlite.addLogs(new Logs("ERROR", this.m.getSessionUserName(), "PW CHANGE FAILED: " + uname));
+                            this.sqlite.newLog(new Logs("ERROR", this.m.getSessionUserName(), "PW CHANGE FAILED: " + uname));
                             dialog.errorDialog("Error Changing Password", "User Management");
                         }
                     }else{

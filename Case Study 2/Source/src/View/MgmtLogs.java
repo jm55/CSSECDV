@@ -157,7 +157,7 @@ public class MgmtLogs extends javax.swing.JPanel {
         if(validate.confirmAdmin("Clear Logs", this.m, this.sqlite)){
             this.sqlite.dropLogsTable();
             this.sqlite.createLogsTable();
-            this.sqlite.addLogs(new Logs("NOTICE", this.m.getSessionUserName(), "Cleared logs"));
+            this.sqlite.newLog(new Logs("NOTICE", this.m.getSessionUserName(), "Cleared logs"));
         }
         reloadTable();
     }//GEN-LAST:event_clearBtnActionPerformed

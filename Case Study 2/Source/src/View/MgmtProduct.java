@@ -233,7 +233,7 @@ public class MgmtProduct extends javax.swing.JPanel {
                             logger.log("PURCHASE", this.m.getSessionUserName(), "Item: " + item + " Quantity: " + quantity);
                             if(quantity > 0)
                                 quantity *= -1;
-                            sqlite.addHistory(this.m.getSessionUserName(), item, quantity);
+                            sqlite.newHistory(this.m.getSessionUserName(), item, quantity);
                             new Dialogs().notifyDialog("Item Purchase Attempt", "Purchase", true);
                         }else{
                             logger.log("PURCHASE", "SYSTEM", "Item Purchase Failed");
@@ -266,9 +266,38 @@ public class MgmtProduct extends javax.swing.JPanel {
         int result = JOptionPane.showConfirmDialog(null, message, "ADD PRODUCT", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
 
         if (result == JOptionPane.OK_OPTION) {
-            System.out.println(nameFld.getText());
-            System.out.println(stockFld.getText());
-            System.out.println(priceFld.getText());
+            if(sqlite.isProductExists(nameFld.getText())){
+                if(new Dialogs().yesno("A product was found to have the same name, do you want to overwrite this instead?", "Add Product")){
+                    try{
+                        if(sqlite.editProduct(this.m.getSessionUserName(), nameFld.getText(), nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText()))){
+                            logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
+                            new Dialogs().notifyDialog("Add New Product", "Add Product", true);
+                        }else{
+                            logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
+                            new Dialogs().notifyDialog("Add New Product", "Add Product", false);
+                        }
+                    }catch(NumberFormatException ex){
+                        logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+                        new Dialogs().notifyDialog("Add New Product", "Add Product", false);
+                    }
+                }else{
+                    new Dialogs().informationDialog("\"" + nameFld.getText() + "\" won't be added as new item due to conflict.", "Add Product");
+                }
+            }else{
+                try{
+                    if(sqlite.newProduct(nameFld.getText(), Integer.parseInt(stockFld.getText()), Double.parseDouble(priceFld.getText()))){
+                        logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
+                        new Dialogs().notifyDialog("Add New Product", "Add Product", true);
+                    }else{
+                        logger.log("PRODUCT", this.m.getSessionUserName(), "Product Adding Failed");
+                        new Dialogs().notifyDialog("Add New Product", "Add Product", false);
+                    }
+                }catch(NumberFormatException ex){
+                    logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+                    new Dialogs().notifyDialog("Add New Product", "Add Product", false);
+                }
+            }
+            reloadTable();
         }
     }//GEN-LAST:event_addBtnActionPerformed
 
@@ -291,11 +320,16 @@ public class MgmtProduct extends javax.swing.JPanel {
 
             if (result == JOptionPane.OK_OPTION) {
                 try{
-                    if(sqlite.editProduct(this.m.getSessionUserName(), originalItemname, nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText())))
+                    if(sqlite.editProduct(this.m.getSessionUserName(), originalItemname, nameFld.getText(), Integer.parseInt(stockFld.getText()), true, Double.parseDouble(priceFld.getText()))){
+                        logger.log("PRODUCT", this.m.getSessionUserName(), "Product Edit Success");
                         new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", true);
+                    }else{
+                        logger.log("PRODUCT", this.m.getSessionUserName(), "Product Edit Failed");
+                        new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", false);
+                    }
                 }catch(NumberFormatException ex){
-                    new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", false);
                     logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+                    new Dialogs().notifyDialog("Edit Product Attempt", "Edit Product", false);
                 }
                 
             }
