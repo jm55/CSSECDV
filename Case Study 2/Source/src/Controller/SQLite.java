@@ -18,8 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.Date;
 
-public class SQLite implements Runnable{
-
+public class SQLite extends Thread implements Runnable{
     private int DEBUG_MODE = 0;
     private String driverURL = "NEFqXZMFhXkd3cuBJK/tEMynO2irnrnfKKzdRLiw2oo=";
     private Validator validate;
@@ -31,13 +30,12 @@ public class SQLite implements Runnable{
      * Runs thread for SQLite object every instantiate call.
      */
     public SQLite() {
-        run();
         this.hs = new HashCrypt();
         this.driverURL = hs.getGenericDecryption(driverURL);
         this.validate = new Validator();
         this.logger = new Logger(this);
     }
-
+    
     /**
      * Set DEBUG_MODE of SQLite.
      * Modifies the output of the getLogs() function.

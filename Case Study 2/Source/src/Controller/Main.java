@@ -31,6 +31,7 @@ public class Main {
      * Conducts final garbage collection and proper exit command.
      */
     public void close(){
+        this.sqlite.interrupt();
         System.out.println("Program Close called at: " + new Date().toString());
         System.gc();
         System.exit(0);
@@ -40,7 +41,8 @@ public class Main {
      * Executes initialization calls for program.
      */
     public void init(){
-        sqlite = new SQLite();
+        this.sqlite = new SQLite();
+        this.sqlite.run();
        
         //For sample database rebuild (if rebuild args was used).
         if(rebuild){

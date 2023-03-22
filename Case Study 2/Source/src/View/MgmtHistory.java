@@ -56,16 +56,15 @@ public class MgmtHistory extends javax.swing.JPanel {
                 Product product = sqlite.getProduct(history.get(nCtr).getName());
                 int s = history.get(nCtr).getStock();
                 int total = (int)product.getPrice();
-                if(s < 0 && this.m.getSessionRole()==2){
-                    s *= -1;
-                    total *= s;
+                if(s < 0){
+                    total *= -1 * s;
                 }else{
                     total *= s;
                 }
                 tableModel.addRow(new Object[]{
                     history.get(nCtr).getUsername(), 
                     history.get(nCtr).getName(),
-                    s,
+                    history.get(nCtr).getStock(),
                     product.getPrice(), 
                     total, 
                     history.get(nCtr).getTimestamp()
