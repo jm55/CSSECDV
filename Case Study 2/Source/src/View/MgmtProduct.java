@@ -342,8 +342,16 @@ public class MgmtProduct extends javax.swing.JPanel {
             int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete " + tableModel.getValueAt(table.getSelectedRow(), 0) + "?", "DELETE PRODUCT", JOptionPane.YES_NO_OPTION);
             
             if (result == JOptionPane.YES_OPTION) {
-                System.out.println(tableModel.getValueAt(table.getSelectedRow(), 0));
+                String target = (String) tableModel.getValueAt(table.getSelectedRow(), 0);
+                if(sqlite.deleteProduct(target)){
+                    logger.log("NOTICE", this.m.getSessionUserName(), "Product (" + target + " ) Delete Success.");
+                    new Dialogs().notifyDialog("Delete Product Attempt", "Delete Product", true);
+                }else{
+                    logger.log("NOTICE", this.m.getSessionUserName(), "Product (" + target + " ) Delete Failed.");
+                    new Dialogs().notifyDialog("Delete Product Attempt", "Delete Product", false);
+                }
             }
+            reloadTable();
         }
     }//GEN-LAST:event_deleteBtnActionPerformed
 

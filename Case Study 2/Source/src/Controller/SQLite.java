@@ -694,6 +694,34 @@ public class SQLite implements Runnable{
         return setRole(toUTF_8(username), role);
     }
     
+    public boolean deleteProduct(final String itemname){
+        if(!validate.isBasicChar(itemname) || !isProductExists(itemname))
+            return false;
+        return removeProduct(itemname);
+    }
+    
+    private boolean removeProduct(final String itemname){
+        String sql = "DELETE FROM product WHERE name=(?);";
+        int result = -1;
+        try (Connection conn = DriverManager.getConnection(driverURL)) {
+            //PREPARED STATEMENT EXAMPLE
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, itemname+"");
+            result = pstmt.executeUpdate();
+        } catch (Exception ex) {
+            logger.log("EXCEPTION", "SYSTEM", ex.getLocalizedMessage());
+            return false;
+        } finally{
+            if (result != 0) {
+                logger.log("DB", "SYSTEM", "Remove Product Success!");
+                return true;
+            } else {
+                logger.log("DB", "SYSTEM", "Remove Product Failed!");
+                return false;
+            }
+        }
+    }
+    
     public boolean deleteUser(final String username){
         if(!(validate.isValidUsernameString(username))){
             logger.log("DB", "SYSTEM", "Delete User FAILED (Invalid characters on input)");
