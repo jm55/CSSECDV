@@ -287,7 +287,7 @@ public class SQLite extends Thread implements Runnable{
      * @param l New log in Logs object form.
      * @return True if successful, false if otherwise.
      */
-    public boolean newLog(Logs l){
+    public boolean newLog(final Logs l){
         return addLogs(l.getEvent(), l.getUsername(), l.getDesc(), l.getTimestamp().toString());
     }
     
@@ -299,7 +299,7 @@ public class SQLite extends Thread implements Runnable{
      * @param timestamp Date & Time the event occurred.
      * @return True if successful, false if otherwise.
      */
-    public boolean newLog(String event, String username, String desc, String timestamp){
+    public boolean newLog(final String event, final String username, final String desc, final String timestamp){
         return addLogs(event, username, desc, timestamp);
     }
 
@@ -311,7 +311,7 @@ public class SQLite extends Thread implements Runnable{
      * @param timestamp Date & Time the event occurred.
      * @return True if successful, false if otherwise.  
      */
-    private boolean addLogs(String event, String username, String desc, String timestamp) {
+    private boolean addLogs(final String event, final String username, final String desc, final String timestamp) {
         String sql = "INSERT INTO logs(event,username,desc,timestamp) VALUES(?,?,?,?)";
         int result = 0;
         try (Connection conn = DriverManager.getConnection(driverURL)) {
