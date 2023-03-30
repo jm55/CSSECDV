@@ -1,0 +1,1 @@
+When executing the application in Netbeans, please disable the 'w/Rebuild' config and set it as 'default-config' as 'w/Rebuild' will show terminal printouts and will reset the DB every launch of the program.
